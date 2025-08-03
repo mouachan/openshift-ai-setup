@@ -1,53 +1,61 @@
 # 🚀 Quick Start - OpenShift AI GitOps
 
-## Déploiement en 3 étapes
+## Installation en 2 étapes
 
 ### 1. Vérifiez votre cluster
 ```bash
-# Vous devez être connecté à OpenShift
+# Connectez-vous à OpenShift
 oc whoami
-oc cluster-info
+oc auth can-i create clusterroles
 ```
 
-### 2. Installez GitOps (si pas déjà fait)
+### 2. Déployez OpenShift AI
 ```bash
-oc apply -f components/operators/gitops/base/subscription.yaml
-# Attendez 2-3 minutes
-oc get csv -n openshift-operators | grep gitops
-```
+# Installer GitOps
+oc apply -f components/operators/openshift-gitops-operator/base/subscription.yaml
 
-### 3. Déployez OpenShift AI
-```bash
+# Attendre puis créer l'application
+sleep 30
 oc apply -f argocd/openshift-ai-application.yaml
 ```
 
-## ✅ Vérification rapide
+## ✅ Vérification
 
 ```bash
-# Voir les applications ArgoCD
+# Applications ArgoCD
 oc get applications -n openshift-gitops
 
-# URL ArgoCD
-oc get route argocd-server -n openshift-gitops -o jsonpath='{.spec.host}'
+# Opérateurs
+oc get csv -n openshift-operators | grep -E "(gitops|rhods)"
 
-# URL OpenShift AI (après ~10 minutes)
-oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}' 2>/dev/null || echo "En cours d'installation..."
+# OpenShift AI
+oc get dsc
 ```
 
-## 🔧 En cas de problème
+## 🌐 URLs
 
 ```bash
-# Voir l'état détaillé
-oc describe application openshift-ai-main -n openshift-gitops
+# ArgoCD
+echo "https://$(oc get route argocd-server -n openshift-gitops -o jsonpath='{.spec.host}')"
 
-# Forcer la synchronisation
-oc patch application openshift-ai-main -n openshift-gitops -p '{"operation":{"sync":{}}}' --type merge
+# OpenShift AI
+echo "https://$(oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}')"
 ```
 
 ## ⏱️ Temps d'installation
 
-- GitOps : ~3 minutes
-- Tous les opérateurs : ~8 minutes  
-- Instances complètes : ~15 minutes total
+- GitOps: 2-3 minutes
+- Application ArgoCD: 30 secondes  
+- Déploiement complet: 10-15 minutes
 
-**C'est tout ! 🎉**
+## 🔧 Dépannage
+
+```bash
+# Forcer la synchronisation
+oc patch application openshift-ai-main -n openshift-gitops -p '{"operation":{"sync":{}}}' --type merge
+
+# Voir les détails
+oc describe application openshift-ai-main -n openshift-gitops
+```
+
+**C'est tout ! ArgoCD gère automatiquement le reste.** 🎉
