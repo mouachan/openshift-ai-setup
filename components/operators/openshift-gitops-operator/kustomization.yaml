@@ -1,8 +1,8 @@
-# Overlay pour OpenShift GitOps Operator
-# Utilise la base et ajoute des configurations spécifiques
+# OpenShift GitOps Operator
+# Configuration pour l'installation de l'opérateur GitOps
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../base
+  - base/subscription.yaml
