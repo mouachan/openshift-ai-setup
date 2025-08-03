@@ -2,11 +2,113 @@
 
 Guide complet pour installer OpenShift AI 2.22 via **pure GitOps** sur un cluster OpenShift propre.
 
+## 🧹 IMPORTANT: Nettoyage préalable
+
+**Si votre cluster a déjà OpenShift AI, Minio, ou d'autres composants, nettoyez d'abord :**
+
+### Suppression OpenShift AI existant
+```bash
+# Supprimer les instances OpenShift AI
+oc delete dsc --all
+oc delete dsci --all
+
+# Supprimer les namespaces OpenShift AI
+oc delete namespace redhat-ods-applications --ignore-not-found
+oc delete namespace redhat-ods-monitoring --ignore-not-found
+oc delete namespace redhat-ods-operator --ignore-not-found
+
+# Supprimer l'opérateur RHOAI
+oc delete subscription rhods-operator -n openshift-operators --ignore-not-found
+oc delete csv -n openshift-operators -l operators.coreos.com/rhods-operator.openshift-operators
+```
+
+### Suppression Minio et stockage S3
+```bash
+# Supprimer Minio si installé
+oc delete deployment minio -n minio --ignore-not-found
+oc delete namespace minio --ignore-not-found
+
+# Supprimer autres stockages S3
+oc delete pvc --all -n minio --ignore-not-found
+```
+
+### Suppression autres composants
+```bash
+# Supprimer Service Mesh si pas voulu
+oc delete smcp --all -n istio-system --ignore-not-found
+oc delete smmr --all -n istio-system --ignore-not-found
+oc delete namespace istio-system --ignore-not-found
+
+# Supprimer Serverless si pas voulu  
+oc delete knativeserving --all -n knative-serving --ignore-not-found
+oc delete namespace knative-serving --ignore-not-found
+
+# Supprimer Pipelines si pas voulu
+oc delete namespace openshift-pipelines --ignore-not-found
+```
+
+### Nettoyage complet (script automatique)
+```bash
+# Script de nettoyage complet - ATTENTION: supprime tout !
+# Copier-coller ces commandes une par une
+
+echo "🧹 Nettoyage complet du cluster..."
+
+# 1. Supprimer OpenShift AI
+echo "Suppression OpenShift AI..."
+oc delete dsc --all --timeout=60s
+oc delete dsci --all --timeout=60s
+oc delete subscription rhods-operator -n openshift-operators --ignore-not-found
+oc delete csv -n openshift-operators -l operators.coreos.com/rhods-operator.openshift-operators --ignore-not-found
+
+# 2. Supprimer les namespaces OpenShift AI
+echo "Suppression namespaces RHOAI..."
+oc delete namespace redhat-ods-applications --timeout=120s --ignore-not-found
+oc delete namespace redhat-ods-monitoring --timeout=120s --ignore-not-found  
+oc delete namespace redhat-ods-operator --timeout=120s --ignore-not-found
+
+# 3. Supprimer Minio et stockage
+echo "Suppression Minio..."
+oc delete namespace minio --timeout=120s --ignore-not-found
+oc delete pv --selector=app=minio --ignore-not-found
+
+# 4. Supprimer Service Mesh (optionnel)
+echo "Suppression Service Mesh..."
+oc delete smcp --all -n istio-system --timeout=60s --ignore-not-found
+oc delete smmr --all -n istio-system --timeout=60s --ignore-not-found
+oc delete namespace istio-system --timeout=120s --ignore-not-found
+
+# 5. Supprimer Serverless (optionnel)
+echo "Suppression Serverless..."
+oc delete knativeserving --all -n knative-serving --timeout=60s --ignore-not-found
+oc delete namespace knative-serving --timeout=120s --ignore-not-found
+
+# 6. Supprimer Pipelines (optionnel)
+echo "Suppression Pipelines..."
+oc delete namespace openshift-pipelines --timeout=120s --ignore-not-found
+
+# 7. Supprimer autres opérateurs si voulus
+echo "Suppression autres opérateurs (optionnel)..."
+oc delete subscription servicemeshoperator -n openshift-operators --ignore-not-found
+oc delete subscription serverless-operator -n openshift-operators --ignore-not-found
+oc delete subscription openshift-pipelines-operator-rh -n openshift-operators --ignore-not-found
+
+# 8. Attendre et vérifier
+echo "Attente nettoyage..."
+sleep 60
+
+echo "✅ Vérification finale:"
+oc get dsc,dsci 2>/dev/null || echo "  ✅ Pas d'instances OpenShift AI"
+oc get namespaces | grep -E "(ods|minio|istio|knative)" || echo "  ✅ Namespaces nettoyés"
+echo "🎯 Cluster prêt pour installation GitOps !"
+```
+
 ## 📋 Prérequis
 
 - Cluster OpenShift 4.12+
 - Accès administrateur cluster (`cluster-admin`)
 - CLI `oc` installé et connecté
+- **Cluster nettoyé** (voir section ci-dessus)
 
 ## 🚀 Installation Pure GitOps
 
@@ -25,6 +127,11 @@ oc whoami --show-server
 
 # Vérifier les permissions admin
 oc auth can-i create clusterroles
+
+# IMPORTANT: Vérifier que le cluster est clean
+echo "🔍 Vérification cluster clean..."
+oc get dsc,dsci 2>/dev/null && echo "❌ OpenShift AI encore présent!" || echo "✅ Pas d'OpenShift AI"
+oc get namespaces | grep -E "(ods|minio)" && echo "❌ Namespaces à nettoyer!" || echo "✅ Namespaces clean"
 ```
 
 ### Étape 3: Déploiement en 2 commandes

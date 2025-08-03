@@ -1,73 +1,26 @@
-# OpenShift AI 2.22 - GitOps Setup
+# OpenShift AI Setup via GitOps
 
-Configuration GitOps pure pour déployer OpenShift AI 2.22 avec ArgoCD.
+Setup complet OpenShift AI 2.22 avec GitOps (ArgoCD) - **Repository Public pour installation ultra-simple!**
 
-## 🚀 Installation sur cluster clean
-
-```bash
-# 1. Cloner le repository
-git clone https://github.com/mouachan/openshift-ai-setup.git
-cd openshift-ai-setup
-
-# 2. Installer GitOps
-oc apply -f components/operators/openshift-gitops-operator/base/subscription.yaml
-
-# 3. Créer l'application ArgoCD
-sleep 30
-oc apply -f argocd/openshift-ai-application.yaml
-```
-
-## 📊 Monitoring
+## 🚀 Installation Ultra-Rapide (2 commandes)
 
 ```bash
-# Voir les applications ArgoCD
-oc get applications -n openshift-gitops
+# 1. Installer OpenShift GitOps
+oc apply -f https://raw.githubusercontent.com/mouachan/openshift-ai-setup/main/components/operators/openshift-gitops-operator/base/subscription.yaml
 
-# Voir les opérateurs
-oc get csv -n openshift-operators
-
-# Voir OpenShift AI
-oc get dsc,dsci
+# 2. Déployer OpenShift AI complet  
+oc apply -f https://raw.githubusercontent.com/mouachan/openshift-ai-setup/main/argocd/openshift-ai-application-public.yaml
 ```
 
-## 🌐 Accès
-
-```bash
-# URL ArgoCD
-oc get route argocd-server -n openshift-gitops -o jsonpath='{.spec.host}'
-
-# URL OpenShift AI
-oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}'
-```
-
-## 📁 Structure
-
-```
-clusters/overlays/openshift-ai-dev/     # Configuration principale
-components/
-├── operators/                          # Opérateurs (GitOps, Service Mesh, etc.)
-└── instances/                          # Instances des services
-argocd/                                 # Applications ArgoCD
-```
-
-## 📚 Documentation
-
-- **[INSTALL-CLEAN-CLUSTER.md](INSTALL-CLEAN-CLUSTER.md)** - Guide installation cluster clean
-- **[QUICK-START.md](QUICK-START.md)** - Démarrage rapide
-- **[GITOPS-DEPLOYMENT.md](GITOPS-DEPLOYMENT.md)** - Guide complet GitOps
-
-## ✅ Composants inclus
-
+**C'est tout ! ArgoCD installe automatiquement :**
 - OpenShift AI 2.22 (stable-2.22)
-- Service Mesh (Istio)
-- Serverless (Knative)
-- Pipelines (Tekton)
-- Kueue
-- GitOps (ArgoCD)
+- Minio S3 Storage
+- Model Registry + MySQL  
+- Utilisateurs et RBAC
+- Service Mesh, Serverless, Pipelines
 
-## 🎯 Pure GitOps
+## � Documentation
 
-- Zéro script
-- Tout déclaratif
-- Self-healing via ArgoCD
-- Synchronisation automatique GitHub
+- **[Installation Repository Public](INSTALL-PUBLIC-REPO.md)** - Installation ultra-simple
+- **[Installation Cluster Propre](INSTALL-CLEAN-CLUSTER.md)** - Guide complet  
+- **[Quick Start](QUICK-START.md)** - Démarrage rapide
