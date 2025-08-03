@@ -1,0 +1,29 @@
+# Patches spécifiques à l'environnement de développement
+# Appliqués via patchesStrategicMerge dans le kustomization principal
+
+# Configuration développement pour DataScienceCluster
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  namespace: redhat-ods-operator
+spec:
+  components:
+    # Configuration minimale pour développement
+    dashboard:
+      managementState: Managed
+    workbenches:
+      managementState: Managed
+    datasciencepipelines:
+      managementState: Managed
+    # KServe pour model serving
+    kserve:
+      managementState: Managed
+      serving:
+        ingressGateway:
+          certificate:
+            type: SelfSigned
+        managementState: Managed
+    # CodeFlare pour distributed workloads
+    codeflare:
+      managementState: Managed

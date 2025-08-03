@@ -1,0 +1,20 @@
+# KnativeServing pour RHOAI 2.22 KServe
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  ingress:
+    istio:
+      enabled: true
+  workloadCertificates:
+    enabled: true
+---
+# KnativeEventing pour intégrations événementielles
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeEventing
+metadata:
+  name: knative-eventing
+  namespace: knative-eventing
+spec: {}

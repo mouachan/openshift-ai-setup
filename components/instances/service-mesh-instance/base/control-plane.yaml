@@ -1,0 +1,35 @@
+# Service Mesh Control Plane pour RHOAI 2.22
+# Version 2.5 avec Jaeger, Kiali et auto-mTLS
+
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  name: basic
+  namespace: istio-system
+spec:
+  version: v2.5
+  tracing:
+    type: Jaeger
+    sampling: 10000
+  addons:
+    jaeger:
+      name: jaeger
+      install:
+        storage:
+          type: Memory
+    kiali:
+      enabled: true
+      name: kiali
+    grafana:
+      enabled: true
+  policy:
+    type: Istiod
+  telemetry:
+    type: Istiod
+  security:
+    manageNetworkPolicy: true
+    controlPlane:
+      mtls: true
+    dataPlane:
+      mtls: true
+      automtls: true

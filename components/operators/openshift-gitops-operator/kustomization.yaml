@@ -1,0 +1,8 @@
+# Overlay pour OpenShift GitOps Operator
+# Utilise la base et ajoute des configurations spécifiques
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base

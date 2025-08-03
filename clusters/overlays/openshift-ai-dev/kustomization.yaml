@@ -1,0 +1,41 @@
+# OpenShift AI Development Cluster
+# Déploiement GitOps pour OpenShift AI 2.22 avec Service Mesh et Serverless
+# 
+# Utilisation:
+# kubectl apply -k clusters/overlays/openshift-ai-dev
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: openshift-ai-dev
+  
+# Base resources
+resources:
+  # Operators first (order matters)
+  - ../../../components/operators/openshift-gitops-operator
+  - ../../../components/operators/openshift-service-mesh
+  - ../../../components/operators/kiali-operator  
+  - ../../../components/operators/openshift-serverless-operator
+  - ../../../components/operators/openshift-pipelines-operator
+  - ../../../components/operators/kueue-operator
+  - ../../../components/operators/rhoai-operator
+  
+  # Instances after operators are ready
+  - ../../../components/instances/service-mesh-instance
+  - ../../../components/instances/serverless-instance
+  - ../../../components/instances/pipelines-instance
+  - ../../../components/instances/kueue-instance
+  - ../../../components/instances/rhoai-instance# Namespace for RHOAI resources
+namespace: redhat-ods-operator
+
+# Apply these patches to customize for dev environment
+patchesStrategicMerge:
+  - dev-patches.yaml
+
+# Labels to apply to all resources
+commonLabels:
+  app.kubernetes.io/name: openshift-ai
+  app.kubernetes.io/version: "2.22"
+  app.kubernetes.io/managed-by: kustomize
+  environment: development

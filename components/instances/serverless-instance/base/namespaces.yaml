@@ -1,0 +1,10 @@
+# Namespaces pour Serverless
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: knative-serving
+---
+apiVersion: v1
+kind: Namespace  
+metadata:
+  name: knative-eventing

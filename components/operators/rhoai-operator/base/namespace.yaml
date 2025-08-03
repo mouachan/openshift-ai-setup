@@ -1,0 +1,7 @@
+# Namespace pour RHOAI
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redhat-ods-operator
+  labels:
+    openshift.io/cluster-monitoring: "true"

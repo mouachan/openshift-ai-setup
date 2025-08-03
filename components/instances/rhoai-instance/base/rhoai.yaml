@@ -1,0 +1,52 @@
+# DSCInitialization pour OpenShift AI 2.22
+apiVersion: dscinitialization.opendatahub.io/v1
+kind: DSCInitialization
+metadata:
+  name: default-dsci
+  namespace: redhat-ods-operator
+spec:
+  applicationNamespace: redhat-ods-applications
+  monitoring:
+    managementState: Managed
+    namespace: redhat-ods-monitoring
+  serviceMesh:
+    managementState: Managed
+    controlPlane:
+      name: basic
+      namespace: istio-system
+  trustedCABundle:
+    managementState: Managed
+---
+# DataScienceCluster pour OpenShift AI 2.22 complet
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  namespace: redhat-ods-operator
+spec:
+  components:
+    codeflare:
+      managementState: Managed
+    kserve:
+      managementState: Managed
+      serving:
+        ingressGateway:
+          certificate:
+            type: SelfSigned
+        managementState: Managed
+    kueue:
+      managementState: Managed
+    dashboard:
+      managementState: Managed
+    datasciencepipelines:
+      managementState: Managed
+    workbenches:
+      managementState: Managed
+    modelmeshserving:
+      managementState: Managed
+    ray:
+      managementState: Managed
+    trustyai:
+      managementState: Managed
+    modelregistry:
+      managementState: Managed
