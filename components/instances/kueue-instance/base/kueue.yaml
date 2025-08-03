@@ -1,20 +1,7 @@
 # Configuration Kueue pour RHOAI 2.22
 # Gestion des queues pour distributed workloads et CodeFlare
+# Utilise Red Hat build of Kueue 1.0.1
 
-apiVersion: config.kueue.x-k8s.io/v1beta1
-kind: Configuration
-metadata:
-  name: kueue-manager-config
-  namespace: kueue-system
-spec:
-  namespace: kueue-system
-  manageJobsWithoutQueueName: true
-  internalCertManagement:
-    enable: true
-  clientConnection:
-    qps: 50
-    burst: 100
----
 # ClusterQueue par défaut pour les workloads
 apiVersion: kueue.x-k8s.io/v1beta1
 kind: ClusterQueue
@@ -38,3 +25,12 @@ kind: ResourceFlavor
 metadata:
   name: default-flavor
 spec: {}
+---
+# LocalQueue par défaut pour les projets
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: default-queue
+  namespace: default
+spec:
+  clusterQueue: cluster-queue

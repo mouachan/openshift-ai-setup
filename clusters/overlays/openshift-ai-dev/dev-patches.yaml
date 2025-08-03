@@ -24,6 +24,12 @@ spec:
           certificate:
             type: SelfSigned
         managementState: Managed
-    # CodeFlare pour distributed workloads
+    # Distributed workloads components (selon doc Red Hat 2.22)
     codeflare:
+      managementState: Managed
+    kueue:
+      managementState: Managed
+    ray:
+      managementState: Managed
+    trainingoperator:
       managementState: Managed

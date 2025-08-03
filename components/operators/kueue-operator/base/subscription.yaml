@@ -1,4 +1,4 @@
-# Kueue Operator pour gestion des queues dans RHOAI
+# Red Hat build of Kueue Operator pour gestion des queues dans RHOAI
 # Intégré avec CodeFlare pour distributed workloads
 
 apiVersion: operators.coreos.com/v1alpha1
@@ -9,6 +9,6 @@ metadata:
 spec:
   channel: stable
   name: kueue
-  source: community-operators
+  source: redhat-operators
   sourceNamespace: openshift-marketplace
   installPlanApproval: Automatic
