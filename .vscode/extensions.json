@@ -1,9 +1,0 @@
-{
-    "recommendations": [
-        "redhat.vscode-yaml",
-        "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "redhat.vscode-openshift-connector",
-        "mindaro.mindaro",
-        "ms-vscode.makefile-tools"
-    ]
-}
