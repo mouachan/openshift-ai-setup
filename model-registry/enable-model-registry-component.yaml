@@ -1,19 +1,12 @@
-apiVersion: v1
-kind: ConfigMap
+# Patch pour activer le Model Registry dans le DataScienceCluster
+# Appliqué via GitOps pour OpenShift AI 2.22
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
 metadata:
-  name: enable-model-registry-component
+  name: default-dsc
   namespace: redhat-ods-applications
-data:
-  enable-model-registry.yaml: |
-    # Patch pour activer le Model Registry dans le DataScienceCluster
-    # Appliqué via GitOps pour OpenShift AI 2.22
-    apiVersion: datasciencecluster.opendatahub.io/v1
-    kind: DataScienceCluster
-    metadata:
-      name: default-dsc
-      namespace: redhat-ods-applications
-    spec:
-      components:
-        modelregistry:
-          managementState: Managed
-          registriesNamespace: rhoai-model-registries
+spec:
+  components:
+    modelregistry:
+      managementState: Managed
+      registriesNamespace: rhoai-model-registries

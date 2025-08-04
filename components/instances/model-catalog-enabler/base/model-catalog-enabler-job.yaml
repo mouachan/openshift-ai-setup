@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: enable-model-catalog
+  namespace: redhat-ods-applications
+  labels:
+    app: model-catalog-enabler
+    app.kubernetes.io/component: dashboard-config
+    app.kubernetes.io/name: model-catalog-enabler
+    app.kubernetes.io/part-of: openshift-ai
+spec:
+  template:
+    metadata:
+      labels:
+        app: model-catalog-enabler
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: model-catalog-enabler
+      containers:
+      - name: enable-model-catalog
+        image: quay.io/openshift/origin-cli:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Waiting for OdhDashboardConfig to be available..."
+          until oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications &>/dev/null; do
+            echo "OdhDashboardConfig not ready, retrying in 10 seconds..."
+            sleep 10
+          done
+          
+          echo "Current Model Catalog configuration:"
+          oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications -o yaml | grep -A5 -B5 disableModelCatalog || echo "disableModelCatalog not found in config"
+          
+          echo "Enabling Model Catalog..."
+          oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type='merge' -p='{"spec":{"dashboardConfig":{"disableModelCatalog":false}}}'
+          
+          echo "Verifying Model Catalog configuration..."
+          oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications -o yaml | grep -A5 -B5 disableModelCatalog
+          
+          echo "Model Catalog enabled successfully!"

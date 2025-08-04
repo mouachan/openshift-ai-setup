@@ -23,6 +23,7 @@ spec:
         - -c
         - |
           set -e
+          export MC_CONFIG_DIR=/tmp/.mc
           echo "Waiting for MinIO to be ready..."
           until mc alias set myminio http://minio-api:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY; do
             echo "MinIO not ready, retrying in 5 seconds..."

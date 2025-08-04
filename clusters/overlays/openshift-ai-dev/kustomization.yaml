@@ -27,8 +27,8 @@ resources:
   - ../../../components/instances/mysql-model-registry/base
   - ../../../components/instances/minio-s3-storage/base
   
-  # Model Registry Configuration
-  - ../../../components/instances/model-registry-config/base
+  # Model Catalog Enabler (Technology Preview)
+  - ../../../components/instances/model-catalog-enabler/base
 
   
   # Instances after operators are ready

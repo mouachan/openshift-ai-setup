@@ -8,9 +8,7 @@ resources:
 - mysql-pvc.yaml
 - mysql-deployment.yaml
 - mysql-service.yaml
+- mysql-auth-fix.yaml
 
-commonLabels:
-  app.kubernetes.io/name: mysql
-  app.kubernetes.io/component: database
-  app.kubernetes.io/part-of: model-registry
-  environment: development
+# Ne pas redéfinir commonLabels ici pour éviter les conflits
+# Les labels seront appliqués par le kustomization parent

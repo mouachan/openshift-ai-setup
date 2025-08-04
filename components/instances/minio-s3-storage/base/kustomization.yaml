@@ -11,8 +11,5 @@ resources:
 - minio-route.yaml
 - minio-bucket-init.yaml
 
-commonLabels:
-  app.kubernetes.io/name: minio
-  app.kubernetes.io/component: s3-storage
-  app.kubernetes.io/part-of: model-registry
-  environment: development
+# Ne pas redéfinir commonLabels ici pour éviter les conflits
+# Les labels seront appliqués par le kustomization parent

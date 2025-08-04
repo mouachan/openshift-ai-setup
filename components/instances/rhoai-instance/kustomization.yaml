@@ -3,6 +3,3 @@ kind: Kustomization
 
 resources:
   - base/
-
-patchesStrategicMerge:
-  - patches/enable-model-registry.yaml
