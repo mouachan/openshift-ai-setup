@@ -1,0 +1,10 @@
+# Patch pour activer le Model Catalog dans OpenShift AI 2.22
+# Technology Preview feature - nécessite Model Registry activé
+apiVersion: opendatahub.io/v1alpha
+kind: OdhDashboardConfig
+metadata:
+  name: odh-dashboard-config
+  namespace: redhat-ods-applications
+spec:
+  dashboardConfig:
+    disableModelCatalog: false

@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: redhat-ods-applications
+
+resources:
+- dashboard-config.yaml
+
+# Configuration pour activer le Model Catalog
+# Technology Preview feature dans OpenShift AI 2.22

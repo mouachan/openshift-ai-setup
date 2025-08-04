@@ -5,7 +5,8 @@ namespace: rhoai-model-registries
 
 resources:
 - minio-secret.yaml
-- minio-pvc.yaml
+# PVC excluded - already exists and bound
+# - minio-pvc.yaml
 - minio-deployment.yaml
 - minio-service.yaml
 - minio-route.yaml

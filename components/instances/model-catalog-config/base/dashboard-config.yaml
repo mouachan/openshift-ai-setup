@@ -1,0 +1,18 @@
+# Configuration pour activer le Model Catalog dans OpenShift AI 2.22
+# Feature Technology Preview - nécessite Model Registry activé
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: odh-dashboard-config
+  namespace: redhat-ods-applications
+  labels:
+    app.kubernetes.io/name: odh-dashboard
+    app.kubernetes.io/part-of: rhods-dashboard
+data:
+  dashboard_config.yaml: |
+    dashboardConfig:
+      disableModelCatalog: false
+      enablement: true
+      disableClusterManager: false
+      disableTrackingAnalytics: false
+      disableBYONImageStream: false

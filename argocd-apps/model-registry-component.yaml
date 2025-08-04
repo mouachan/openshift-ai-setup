@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: model-registry-component
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/name: model-registry-component
+    app.kubernetes.io/part-of: openshift-ai
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mouachan/openshift-ai-setup.git
+    targetRevision: main
+    path: clusters/overlays/openshift-ai-dev
+    kustomize:
+      patchesStrategicMerge:
+        - enable-model-registry-patch.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redhat-ods-applications
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+    - RespectIgnoreDifferences=true
+    - ServerSideApply=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
