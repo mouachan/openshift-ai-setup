@@ -22,6 +22,13 @@ resources:
   
   # Namespaces needed by components
   - ../../../components/instances/model-registry-namespace/base
+  
+  # Model Registry Dependencies (MySQL and MinIO S3)
+  - ../../../components/instances/mysql-model-registry/base
+  - ../../../components/instances/minio-s3-storage/base
+  
+  # Model Registry Configuration
+  - ../../../components/instances/model-registry-config/base
 
   
   # Instances after operators are ready

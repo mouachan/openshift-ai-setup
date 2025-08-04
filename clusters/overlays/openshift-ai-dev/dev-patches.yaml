@@ -33,3 +33,7 @@ spec:
       managementState: Managed
     trainingoperator:
       managementState: Managed
+    # Model Registry avec dépendances externes
+    modelregistry:
+      managementState: Managed
+      registriesNamespace: rhoai-model-registries

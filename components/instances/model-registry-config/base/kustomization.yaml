@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: rhoai-model-registries
+
+resources:
+- model-registry-db-secret.yaml
+- model-registry-s3-secret.yaml
+- model-registry.yaml
+
+commonLabels:
+  app.kubernetes.io/name: model-registry
+  app.kubernetes.io/component: model-registry-service
+  app.kubernetes.io/part-of: openshift-ai
+  environment: development
