@@ -4,5 +4,6 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - control-plane.yaml
+  - member-roll.yaml
 
 namespace: istio-system
