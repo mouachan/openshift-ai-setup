@@ -10,14 +10,8 @@ metadata:
 spec:
   version: v2.6
   tracing:
-    type: Jaeger
-    sampling: 10000
+    type: None  # Disable external Jaeger dependency
   addons:
-    jaeger:
-      name: jaeger
-      install:
-        storage:
-          type: Memory
     kiali:
       enabled: true
       name: kiali
