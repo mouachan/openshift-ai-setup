@@ -40,25 +40,6 @@ spec:
     default-service-account: pipeline
     enable-api-fields: stable
   hub:
-    categories:
-    - All
-    - Build Tools
-    - CLI
-    - Cloud
-    - Code Quality
-    - Data Processing
-    - Deployment
-    - Developer Tools
-    - Git
-    - Image Build
-    - Kubernetes
-    - Machine Learning
-    - Messaging
-    - Monitoring
-    - Notification
-    - Security
-    - Storage
-    - Testing
     scopes:
     - cluster
     - namespace
