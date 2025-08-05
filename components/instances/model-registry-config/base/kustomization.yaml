@@ -14,9 +14,6 @@ resources:
 - http-annotation-rbac.yaml
 - http-annotation-job.yaml
 
-patchesStrategicMerge:
-- service-annotation-patch.yaml
-
 commonLabels:
   app.kubernetes.io/name: model-registry
   app.kubernetes.io/component: model-registry-service
