@@ -12,7 +12,9 @@ resources:
 - rbac-mouachan-admin.yaml
 - rbac-mouachan-user.yaml
 - http-annotation-rbac.yaml
-- http-annotation-job.yaml
+- dashboard-restart-rbac.yaml
+- pre-sync-dashboard-restart.yaml
+- post-sync-http-annotation.yaml
 
 commonLabels:
   app.kubernetes.io/name: model-registry
