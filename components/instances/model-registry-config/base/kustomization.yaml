@@ -11,6 +11,8 @@ resources:
 - rbac-admin-role.yaml
 - rbac-mouachan-admin.yaml
 - rbac-mouachan-user.yaml
+- http-annotation-rbac.yaml
+- http-annotation-job.yaml
 
 patchesStrategicMerge:
 - service-annotation-patch.yaml
