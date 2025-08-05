@@ -41,6 +41,19 @@
 2. **model-registry-mouachan-admin** - Utilisateur `mouachan` → rôle admin
 3. **model-registry-mouachan-access** - Utilisateur `mouachan` → rôle utilisateur
 
+## Configuration GitOps complète
+
+### Job d'annotation HTTP automatique
+- **ServiceAccount** : `model-registry-http-fix` avec permissions sur les services
+- **Job** : `model-registry-http-annotation` applique automatiquement l'annotation HTTP
+- **Exécution** : Se lance après déploiement du Model Registry et applique l'annotation
+- **Résultat** : Annotation `routing.opendatahub.io/external-address-rest` persistée
+
+### Fichiers GitOps ajoutés
+- `http-annotation-rbac.yaml` - ServiceAccount et permissions pour annotation
+- `http-annotation-job.yaml` - Job automatique d'application de l'annotation
+- `model-registry.yaml` - Configuration avec `serviceRoute: disabled`
+
 ## Configuration Service Mesh requise
 
 Le namespace `redhat-ods-applications` doit être membre du Service Mesh pour permettre la communication avec le Model Registry :
