@@ -59,10 +59,6 @@ spec:
     - Security
     - Storage
     - Testing
-    catalogs:
-    - name: tekton
-      remote:
-        url: https://api.hub.tekton.dev/v1
     scopes:
     - cluster
     - namespace
