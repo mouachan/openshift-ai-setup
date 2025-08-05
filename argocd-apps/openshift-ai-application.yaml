@@ -16,6 +16,9 @@ spec:
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
+    syncStrategy:
+      apply:
+        force: true   # Force kubectl apply to replace resources entirely
     automated:
       prune: false  # Don't auto-prune to avoid deleting bound PVCs and Jobs
       selfHeal: true   # Enable self-heal to automatically apply config changes
@@ -24,6 +27,8 @@ spec:
     - CreateNamespace=true
     - ApplyOutOfSyncOnly=true  # Only apply what's actually different
     - RespectIgnoreDifferences=true
+    - Replace=true              # Force full replace to drop removed fields
+    - ServerSideApply=true      # Use server-side apply to respect CRD schema
     retry:
       limit: 3  # Reduced retry limit
       backoff:
@@ -52,3 +57,9 @@ spec:
     jsonPointers:
     - /status
     - /metadata/managedFields
+  # Ignore TektonConfig hub differences to avoid admission errors from removed 'categories'
+  - group: operator.tekton.dev
+    kind: TektonConfig
+    name: config
+    jsonPointers:
+    - /spec/hub
