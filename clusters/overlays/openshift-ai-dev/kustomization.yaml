@@ -34,7 +34,7 @@ resources:
 
 
 # Apply these patches to customize for dev environment
- patchesStrategicMerge:
+patchesStrategicMerge:
   - dev-patches.yaml
   - remove-pipelines-hub-patch.yaml
 
