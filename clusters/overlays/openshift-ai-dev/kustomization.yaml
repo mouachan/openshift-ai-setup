@@ -12,13 +12,8 @@ metadata:
   
 # Base resources
 resources:
-  # Operators first (order matters)
-  - ../../../components/operators/openshift-gitops-operator
-  - ../../../components/operators/openshift-service-mesh
-  - ../../../components/operators/kiali-operator  
-  - ../../../components/operators/openshift-serverless-operator
-  - ../../../components/operators/openshift-pipelines-operator
-  - ../../../components/operators/rhoai-operator
+  # Operators first (order matters) - includes Jaeger dependency
+  - ../../../components/operators/
   
   # Namespaces needed by components
   - ../../../components/instances/model-registry-namespace/base
@@ -34,7 +29,7 @@ resources:
   # Instances after operators are ready
   - ../../../components/instances/service-mesh-instance
   - ../../../components/instances/serverless-instance
-  # - ../../../components/instances/pipelines-instance  # COMMENTÉ TEMPORAIREMENT POUR RÉSOUDRE TEKTON
+  - ../../../components/instances/pipelines-instance  # ✅ Réactivé après suppression conflit Kueue
   - ../../../components/instances/rhoai-instance
 
 
