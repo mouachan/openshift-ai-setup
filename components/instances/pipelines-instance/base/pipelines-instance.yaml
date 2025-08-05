@@ -40,9 +40,7 @@ spec:
     default-service-account: pipeline
     enable-api-fields: stable
   hub:
-    scopes:
-    - cluster
-    - namespace
+    options: {}
   platforms:
     openshift:
       pipelinesAsCode:

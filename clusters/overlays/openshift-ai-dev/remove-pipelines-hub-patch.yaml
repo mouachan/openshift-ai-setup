@@ -1,0 +1,8 @@
+# Patch pour supprimer la section spec.hub de TektonConfig
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonConfig
+metadata:
+  name: config
+  namespace: openshift-pipelines
+spec:
+  hub: {}
