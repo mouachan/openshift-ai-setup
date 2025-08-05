@@ -24,7 +24,7 @@ spec:
       limits:
         cpu: 200m
         memory: 512Mi
-    serviceRoute: enabled
+    serviceRoute: disabled
   mysql:
     host: mysql.rhoai-model-registries.svc.cluster.local
     port: 3306
