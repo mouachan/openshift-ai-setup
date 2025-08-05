@@ -7,6 +7,10 @@ resources:
 - model-registry-db-secret.yaml
 - model-registry-s3-secret.yaml
 - model-registry.yaml
+- rbac-access.yaml
+
+patchesStrategicMerge:
+- service-annotation-patch.yaml
 
 commonLabels:
   app.kubernetes.io/name: model-registry
