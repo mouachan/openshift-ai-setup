@@ -18,7 +18,7 @@ spec:
   syncPolicy:
     automated:
       prune: false  # Don't auto-prune to avoid deleting bound PVCs and Jobs
-      selfHeal: false  # Manual healing to avoid conflicts
+      selfHeal: true   # Enable self-heal to automatically apply config changes
       allowEmpty: false
     syncOptions:
     - CreateNamespace=true
