@@ -17,11 +17,29 @@
 **Fichier** : `components/instances/service-mesh-instance/base/member-roll.yaml`
 
 ### 3. Permissions RBAC
-**Problème** : Accès limité au Model Registry pour certains utilisateurs.
+**Problème** : Accès limité au Model Registry pour certains utilisateurs et impossibilité de gérer les permissions.
 
-**Solution** : Ajout du groupe `system:authenticated` au RoleBinding pour permettre l'accès à tous les utilisateurs authentifiés.
+**Solutions** :
+- Ajout du groupe `system:authenticated` au RoleBinding pour permettre l'accès à tous les utilisateurs authentifiés
+- Création d'un rôle `model-registry-admin` avec permissions RBAC complètes
+- Attribution des permissions admin et utilisateur à l'utilisateur `mouachan`
 
-**Fichier** : `rbac-access.yaml`
+**Fichiers** : 
+- `rbac-access.yaml` - Accès pour tous les utilisateurs authentifiés
+- `rbac-admin-role.yaml` - Rôle administrateur complet
+- `rbac-mouachan-admin.yaml` - Permissions admin pour mouachan
+- `rbac-mouachan-user.yaml` - Permissions utilisateur pour mouachan
+
+## Configuration RBAC complète
+
+### Rôles créés
+1. **registry-user-default-model-registry** (automatique) - Accès lecture au Model Registry
+2. **model-registry-admin** (custom) - Gestion complète des permissions RBAC
+
+### RoleBindings créés
+1. **model-registry-all-users** - Groupe `system:authenticated` → rôle utilisateur
+2. **model-registry-mouachan-admin** - Utilisateur `mouachan` → rôle admin
+3. **model-registry-mouachan-access** - Utilisateur `mouachan` → rôle utilisateur
 
 ## Configuration Service Mesh requise
 
@@ -47,12 +65,17 @@ spec:
    oc exec -n redhat-ods-applications deployment/rhods-dashboard -- curl -s http://default-model-registry.rhoai-model-registries.svc.cluster.local:8080/api/model_registry/v1alpha3/registered_models
    ```
 
-2. **Permissions RBAC** :
+2. **Permissions RBAC utilisateur** :
    ```bash
-   oc auth can-i get modelregistry --as=system:serviceaccount:default:default -n rhoai-model-registries
+   oc auth can-i get modelregistry --as=mouachan -n rhoai-model-registries
    ```
 
-3. **Service Mesh membership** :
+3. **Permissions RBAC admin** :
+   ```bash
+   oc auth can-i create rolebindings --as=mouachan -n rhoai-model-registries
+   ```
+
+4. **Service Mesh membership** :
    ```bash
    oc get namespace redhat-ods-applications -o jsonpath='{.metadata.labels.maistra\.io/member-of}'
    ```

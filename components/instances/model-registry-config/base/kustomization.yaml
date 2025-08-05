@@ -8,6 +8,9 @@ resources:
 - model-registry-s3-secret.yaml
 - model-registry.yaml
 - rbac-access.yaml
+- rbac-admin-role.yaml
+- rbac-mouachan-admin.yaml
+- rbac-mouachan-user.yaml
 
 patchesStrategicMerge:
 - service-annotation-patch.yaml
