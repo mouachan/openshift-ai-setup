@@ -2,15 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
 resources:
-# Templates pour l'interface OpenShift AI
+# Templates custom serving runtimes avec ServingRuntimes inclus
 - triton-template-custom.yaml
 - seldon-template-custom.yaml
-
-# NVIDIA Triton Inference Server - chapitre 2.11.23
-- triton-runtime.yaml
-
-# Seldon MLServer - chapitre 2.11.3  
-- seldon-mlserver-runtime.yaml
 
 # Configuration pour appliquer les runtimes dans le namespace correct
 namespace: redhat-ods-applications
