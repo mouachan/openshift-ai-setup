@@ -4,7 +4,7 @@ kind: Kustomization
 metadata:
   name: triton-demo-instance
   annotations:
-    argocd.argoproj.io/sync-wave: "3"  # Après RHOAI et pipelines
+    argocd.argoproj.io/sync-wave: "4"  # Après RHOAI et pipelines
 
 # Ressources de la démo Triton
 resources:

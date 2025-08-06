@@ -1,5 +1,25 @@
+# Pipelines Instance
+# Déploiement d'OpenShift Pipelines pour OpenShift AI
+# 
+# Utilisation:
+# kubectl apply -k components/instances/pipelines-instance
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+metadata:
+  name: pipelines-instance
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"  # Après les opérateurs
+
+# Base resources
 resources:
   - base/
+
+# Labels to apply to all resources
+commonLabels:
+  app.kubernetes.io/name: openshift-ai
+  app.kubernetes.io/component: pipelines
+  app.kubernetes.io/version: "2.22"
+  app.kubernetes.io/managed-by: kustomize
+  environment: development

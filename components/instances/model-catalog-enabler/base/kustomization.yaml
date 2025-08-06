@@ -1,11 +1,26 @@
+# Model Catalog Enabler (Technology Preview)
+# Active le Model Catalog dans RHOAI 2.22
+# 
+# Utilisation:
+# kubectl apply -k components/instances/model-catalog-enabler/base
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: redhat-ods-applications
+metadata:
+  name: model-catalog-enabler
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"  # Après les opérateurs
 
+# Base resources
 resources:
-- model-catalog-enabler-rbac.yaml
-- model-catalog-enabler-job.yaml
+  - model-catalog-enabler-rbac.yaml
+  - model-catalog-enabler-job.yaml
 
-# Configuration automatique pour activer le Model Catalog
-# Technology Preview feature dans OpenShift AI 2.22
+# Labels to apply to all resources
+commonLabels:
+  app.kubernetes.io/name: openshift-ai
+  app.kubernetes.io/component: model-catalog-enabler
+  app.kubernetes.io/version: "2.22"
+  app.kubernetes.io/managed-by: kustomize
+  environment: development

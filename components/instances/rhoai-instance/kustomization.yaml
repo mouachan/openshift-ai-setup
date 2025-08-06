@@ -1,8 +1,28 @@
+# RHOAI Instance
+# Déploiement d'OpenShift AI (RHODS) 2.22 avec Model Registry consolidé
+# 
+# Utilisation:
+# kubectl apply -k components/instances/rhoai-instance
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+metadata:
+  name: rhoai-instance
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"  # Après l'infrastructure
+
+# Base resources
 resources:
   - base/
+
+# Labels to apply to all resources
+commonLabels:
+  app.kubernetes.io/name: openshift-ai
+  app.kubernetes.io/component: rhoai
+  app.kubernetes.io/version: "2.22"
+  app.kubernetes.io/managed-by: kustomize
+  environment: development
 
 components:
   - components/model-registry/

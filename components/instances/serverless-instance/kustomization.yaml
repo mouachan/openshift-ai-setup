@@ -1,5 +1,25 @@
+# Serverless Instance
+# Déploiement de Knative pour OpenShift AI
+# 
+# Utilisation:
+# kubectl apply -k components/instances/serverless-instance
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+metadata:
+  name: serverless-instance
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"  # Après les opérateurs
+
+# Base resources
 resources:
   - base/
+
+# Labels to apply to all resources
+commonLabels:
+  app.kubernetes.io/name: openshift-ai
+  app.kubernetes.io/component: serverless
+  app.kubernetes.io/version: "2.22"
+  app.kubernetes.io/managed-by: kustomize
+  environment: development
