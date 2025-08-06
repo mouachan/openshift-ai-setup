@@ -146,7 +146,7 @@ metadata:
 ### Vérifier l'intégration ArgoCD
 ```bash
 # Application principale
-oc get application openshift-ai-complete -n openshift-gitops
+oc get applications.argoproj.io openshift-ai-complete -n openshift-gitops
 
 # Ressources de la démo
 oc get all -n triton-demo

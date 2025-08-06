@@ -167,7 +167,7 @@ check-prerequisites: ## Vérification des prérequis
 
 check-gitops: ## Vérification du statut du GitOps intégré
 	@echo "$(BLUE)🔍 Vérification du GitOps intégré...$(NC)"
-	@oc get application openshift-ai-complete -n openshift-gitops >/dev/null 2>&1 && echo "$(GREEN)✅ Application ArgoCD principale trouvée$(NC)" || echo "$(RED)❌ Application ArgoCD principale non trouvée$(NC)"
+	@oc get applications.argoproj.io openshift-ai-complete -n openshift-gitops >/dev/null 2>&1 && echo "$(GREEN)✅ Application ArgoCD principale trouvée$(NC)" || echo "$(RED)❌ Application ArgoCD principale non trouvée$(NC)"
 	@oc get namespace triton-demo >/dev/null 2>&1 && echo "$(GREEN)✅ Namespace triton-demo trouvé$(NC)" || echo "$(YELLOW)⚠️  Namespace triton-demo non trouvé (déployez d'abord le GitOps)$(NC)"
 	@oc get all -n triton-demo --no-headers 2>/dev/null | wc -l | xargs -I {} echo "$(BLUE)📊 Ressources dans triton-demo: {}$(NC)" || echo "$(YELLOW)⚠️  Aucune ressource dans triton-demo$(NC)"
 

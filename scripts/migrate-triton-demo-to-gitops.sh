@@ -95,7 +95,7 @@ check_current_status() {
         log_info "Ressources déployées: $RESOURCES"
         
         # Vérifier l'application ArgoCD
-        if oc get application openshift-ai-complete -n "$ARGOCD_NAMESPACE" &> /dev/null; then
+        if oc get applications.argoproj.io openshift-ai-complete -n "$ARGOCD_NAMESPACE" &> /dev/null; then
             log_info "Application ArgoCD principale trouvée"
         else
             log_warning "Application ArgoCD principale non trouvée"
@@ -149,11 +149,11 @@ deploy_new_gitops() {
     log_step "Déploiement du nouveau GitOps intégré..."
     
     # Vérifier que l'application ArgoCD principale existe
-    if oc get application openshift-ai-complete -n "$ARGOCD_NAMESPACE" &> /dev/null; then
+    if oc get applications.argoproj.io openshift-ai-complete -n "$ARGOCD_NAMESPACE" &> /dev/null; then
         log_info "Application ArgoCD principale trouvée - synchronisation..."
         
         # Forcer la synchronisation
-        oc patch application openshift-ai-complete -n "$ARGOCD_NAMESPACE" \
+        oc patch applications.argoproj.io openshift-ai-complete -n "$ARGOCD_NAMESPACE" \
             --type='merge' -p='{"spec":{"syncPolicy":{"automated":{"prune":false,"selfHeal":true}}}}'
         
         log_success "Synchronisation ArgoCD déclenchée"
