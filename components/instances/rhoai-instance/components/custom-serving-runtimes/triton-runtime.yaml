@@ -11,6 +11,11 @@ metadata:
     app.kubernetes.io/component: serving-runtime
     app.kubernetes.io/part-of: openshift-ai
     runtime: triton
+    opendatahub.io/dashboard: "true"
+  annotations:
+    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
+    opendatahub.io/runtime-version: v23.10
+    openshift.io/display-name: "NVIDIA Triton Inference Server"
 spec:
   annotations:
     prometheus.kserve.io/path: "/metrics"

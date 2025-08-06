@@ -11,6 +11,11 @@ metadata:
     app.kubernetes.io/component: serving-runtime
     app.kubernetes.io/part-of: openshift-ai
     runtime: seldon-mlserver
+    opendatahub.io/dashboard: "true"
+  annotations:
+    opendatahub.io/recommended-accelerators: '["cpu"]'
+    opendatahub.io/runtime-version: v1.3.5
+    openshift.io/display-name: "Seldon MLServer"
 spec:
   annotations:
     prometheus.kserve.io/path: "/metrics"
