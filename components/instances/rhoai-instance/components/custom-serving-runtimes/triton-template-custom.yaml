@@ -7,12 +7,20 @@ metadata:
     opendatahub.io/modelServingSupport: '["multi"]'
     openshift.io/display-name: "NVIDIA Triton Inference Server"
     openshift.io/provider-display-name: "NVIDIA Corporation"
+    platform.opendatahub.io/instance.generation: "1"
+    platform.opendatahub.io/instance.name: "default-modelcontroller"
+    platform.opendatahub.io/type: "OpenShift AI Self-Managed"
+    platform.opendatahub.io/version: "2.22.0"
     tags: "rhods,rhoai,kserve,servingruntime,triton,tensorflow,pytorch,onnx,tensorrt"
     template.openshift.io/documentation-url: "https://docs.nvidia.com/deeplearning/triton-inference-server/"
     template.openshift.io/long-description: "This template defines resources needed to deploy NVIDIA Triton Inference Server with KServe in Red Hat OpenShift AI for serving TensorFlow, PyTorch, ONNX, and TensorRT models."
   labels:
+    app: "odh-dashboard"
+    app.kubernetes.io/part-of: "odh-model-controller" 
+    app.opendatahub.io/odh-model-controller: "true"
     opendatahub.io/dashboard: "true"
     opendatahub.io/ootb: "true"
+    platform.opendatahub.io/part-of: "modelcontroller"
   name: nvidia-triton-runtime-template
   namespace: redhat-ods-applications
 objects:
