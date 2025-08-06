@@ -16,6 +16,8 @@ resources:
 - mysql-service.yaml
 
 # S3 Storage (MinIO)
+- minio-serviceaccount.yaml
+- minio-scc-binding.yaml
 - minio-deployment.yaml
 - minio-pvc.yaml
 - minio-secret.yaml
@@ -25,6 +27,3 @@ resources:
 
 # RBAC - Simple approach like BU
 - rolebinding.yaml
-
-# SSL Fix for Model Registry web interface
-- ssl-fix-configmap.yaml

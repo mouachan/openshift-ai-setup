@@ -18,6 +18,7 @@ spec:
       labels:
         app: minio
     spec:
+      serviceAccountName: minio-sa
       containers:
       - name: minio
         image: quay.io/minio/minio:latest

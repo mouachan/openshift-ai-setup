@@ -3,18 +3,18 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   annotations:
-    openshift.io/description: Can access Model Registry default-model-registry
-    openshift.io/display-name: Registry User default-model-registry
-  name: registry-user-default-model-registry
+    openshift.io/description: Can access Model Registry default-modelregistry
+    openshift.io/display-name: Registry User default-modelregistry
+  name: registry-user-default-modelregistry
   labels:
-    app: default-model-registry
-    app.kubernetes.io/component: default-model-registry
+    app: default-modelregistry
+    app.kubernetes.io/component: default-modelregistry
     app.kubernetes.io/created-by: model-registry-operator
-    app.kubernetes.io/instance: registry-user-default-model-registry
+    app.kubernetes.io/instance: registry-user-default-modelregistry
     app.kubernetes.io/managed-by: model-registry-operator
-    app.kubernetes.io/name: default-model-registry
-    app.kubernetes.io/part-of: default-model-registry
-    component: default-model-registry
+    app.kubernetes.io/name: default-modelregistry
+    app.kubernetes.io/part-of: default-modelregistry
+    component: default-modelregistry
 rules:
   - verbs:
       - get
@@ -23,7 +23,7 @@ rules:
     resources:
       - services
     resourceNames:
-      - default-model-registry
+      - default-modelregistry
   - verbs:
       - get
     apiGroups:
@@ -31,7 +31,7 @@ rules:
     resources:
       - endpoints
     resourceNames:
-      - default-model-registry
+      - default-modelregistry
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -39,11 +39,11 @@ metadata:
   name: model-registry-permissions-everybody
   namespace: rhoai-model-registries
   labels:
-    app: default-model-registry
-    app.kubernetes.io/component: default-model-registry
-    app.kubernetes.io/name: default-model-registry
-    app.kubernetes.io/part-of: default-model-registry
-    component: default-model-registry
+    app: default-modelregistry
+    app.kubernetes.io/component: default-modelregistry
+    app.kubernetes.io/name: default-modelregistry
+    app.kubernetes.io/part-of: default-modelregistry
+    component: default-modelregistry
     opendatahub.io/dashboard: 'true'
 subjects:
   - kind: Group
@@ -52,4 +52,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: registry-user-default-model-registry
+  name: registry-user-default-modelregistry
