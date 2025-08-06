@@ -1,0 +1,149 @@
+# Template NVIDIA Triton Inference Server
+# Basé sur le chapitre 2.11.23 de la documentation OpenShift AI 2.22
+# Template pour affichage dans l'interface OpenShift AI
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: triton-runtime-template
+  namespace: redhat-ods-applications
+  labels:
+    app.kubernetes.io/name: triton-runtime
+    app.kubernetes.io/component: serving-runtime
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/instance: openshift-ai-complete
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/version: "2.22"
+    environment: development
+  annotations:
+    description: "NVIDIA Triton Inference Server - Multi-framework serving runtime"
+    openshift.io/display-name: "Triton Runtime 23.10"
+    openshift.io/provider-display-name: "NVIDIA"
+    tags: "triton,tensorflow,pytorch,onnx,tensorrt,nvidia,ai,ml"
+objects:
+- apiVersion: serving.kserve.io/v1alpha1
+  kind: ServingRuntime
+  metadata:
+    name: triton-runtime
+    labels:
+      app.kubernetes.io/name: triton-runtime
+      app.kubernetes.io/component: serving-runtime
+      app.kubernetes.io/part-of: openshift-ai
+      runtime: triton
+  spec:
+    annotations:
+      prometheus.kserve.io/path: "/metrics"
+      prometheus.kserve.io/port: "8002"
+      serving.kserve.io/enable-prometheus-scraping: "true"
+      serving.kserve.io/enable-route: "true"
+    multiModel: true
+    supportedModelFormats:
+    # TensorFlow models
+    - name: tensorflow
+      version: "1"
+      autoSelect: true
+    - name: tensorflow
+      version: "2"
+      autoSelect: true
+    # PyTorch models  
+    - name: pytorch
+      version: "1"
+      autoSelect: true
+    # ONNX models
+    - name: onnx
+      version: "1"
+      autoSelect: true
+    # TensorRT models
+    - name: tensorrt
+      version: "8"
+      autoSelect: true
+    # Python backend for custom models
+    - name: python
+      version: "1"
+      autoSelect: true
+    containers:
+    - name: triton
+      image: nvcr.io/nvidia/tritonserver:23.10-py3
+      command:
+      - /bin/bash
+      - -c
+      args:
+      - |
+        mkdir -p /models/_triton_models
+        chmod 777 /models/_triton_models
+        exec tritonserver \
+          --model-repository=/models/_triton_models \
+          --model-control-mode=explicit \
+          --strict-model-config=false \
+          --strict-readiness=false \
+          --allow-http=true \
+          --allow-grpc=true \
+          --allow-metrics=true \
+          --allow-gpu-metrics=true \
+          --allow-cpu-metrics=true \
+          --http-port=8000 \
+          --grpc-port=8001 \
+          --metrics-port=8002 \
+          --log-verbose=1
+      ports:
+      - containerPort: 8000
+        name: http
+        protocol: TCP
+      - containerPort: 8001
+        name: grpc
+        protocol: TCP
+      - containerPort: 8002
+        name: metrics
+        protocol: TCP
+      env:
+      - name: TRANSFORMERS_CACHE
+        value: /tmp/transformers_cache
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: "2"
+          memory: 4Gi
+      volumeMounts:
+      - name: model-dir
+        mountPath: /mnt/models
+      - name: shm
+        mountPath: /dev/shm
+      livenessProbe:
+        exec:
+          command:
+          - curl
+          - --fail
+          - --silent
+          - --show-error
+          - --max-time
+          - "9"
+          - http://localhost:8000/v2/health/live
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 10
+      readinessProbe:
+        exec:
+          command:
+          - curl
+          - --fail
+          - --silent
+          - --show-error
+          - --max-time
+          - "9"
+          - http://localhost:8000/v2/health/ready
+        initialDelaySeconds: 10
+        periodSeconds: 30
+        timeoutSeconds: 10
+    volumes:
+    - name: model-dir
+      emptyDir: {}
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 2Gi
+    builtInAdapter:
+      serverType: triton
+      runtimeManagementPort: 8001
+      memBufferBytes: 134217728
+      modelLoadingTimeoutMillis: 90000

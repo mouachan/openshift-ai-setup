@@ -2,6 +2,16 @@
 
 Ce composant ajoute des runtimes de service custom à OpenShift AI 2.22 suivant la documentation officielle Red Hat et le pattern BU "une feature = un répertoire".
 
+## Architecture
+
+### Templates (Visibles dans l'interface)
+- `triton-template.yaml` - Template NVIDIA Triton Inference Server
+- `seldon-template.yaml` - Template Seldon MLServer Runtime
+
+### ServingRuntimes (Déploiement direct)
+- `triton-runtime.yaml` - NVIDIA Triton Inference Server Runtime
+- `seldon-mlserver-runtime.yaml` - Seldon MLServer Runtime
+
 ## Runtimes Inclus
 
 ### 🚀 NVIDIA Triton Inference Server
