@@ -1,7 +1,7 @@
 apiVersion: modelregistry.opendatahub.io/v1beta1
 kind: ModelRegistry
 metadata:
-  name: default-model-registry
+  name: default-modelregistry
   namespace: rhoai-model-registries
   labels:
     app.kubernetes.io/name: model-registry
