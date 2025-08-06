@@ -4,7 +4,7 @@ metadata:
   annotations:
     description: "NVIDIA Triton Inference Server - Multi-framework serving runtime for TensorFlow, PyTorch, ONNX, and TensorRT models"
     opendatahub.io/apiProtocol: "REST"
-    opendatahub.io/modelServingSupport: '["multi"]'
+    opendatahub.io/modelServingSupport: '["single", "multi"]'
     openshift.io/display-name: "NVIDIA Triton Inference Server"
     openshift.io/provider-display-name: "NVIDIA Corporation"
     platform.opendatahub.io/instance.generation: "1"

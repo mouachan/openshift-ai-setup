@@ -4,7 +4,7 @@ metadata:
   annotations:
     description: "Seldon MLServer - Multi-framework ML serving runtime for scikit-learn, XGBoost, LightGBM, MLflow, and Hugging Face models"
     opendatahub.io/apiProtocol: "REST"
-    opendatahub.io/modelServingSupport: '["multi"]'
+    opendatahub.io/modelServingSupport: '["single", "multi"]'
     openshift.io/display-name: "Seldon MLServer"
     openshift.io/provider-display-name: "Seldon Technologies"
     platform.opendatahub.io/instance.generation: "1"
