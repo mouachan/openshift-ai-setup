@@ -1,0 +1,115 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  annotations:
+    description: "Seldon MLServer - Multi-framework ML serving runtime for scikit-learn, XGBoost, LightGBM, MLflow, and Hugging Face models"
+    opendatahub.io/apiProtocol: "REST"
+    opendatahub.io/modelServingSupport: '["multi"]'
+    openshift.io/display-name: "Seldon MLServer"
+    openshift.io/provider-display-name: "Seldon Technologies"
+    tags: "rhods,rhoai,kserve,servingruntime,seldon,sklearn,xgboost,mlflow,huggingface"
+    template.openshift.io/documentation-url: "https://mlserver.readthedocs.io/"
+    template.openshift.io/long-description: "This template defines resources needed to deploy Seldon MLServer with KServe in Red Hat OpenShift AI for serving scikit-learn, XGBoost, LightGBM, MLflow, and Hugging Face models."
+  labels:
+    opendatahub.io/dashboard: "true"
+  name: seldon-mlserver-template
+  namespace: redhat-ods-applications
+objects:
+- apiVersion: serving.kserve.io/v1alpha1
+  kind: ServingRuntime
+  metadata:
+    annotations:
+      opendatahub.io/recommended-accelerators: '["cpu"]'
+      opendatahub.io/runtime-version: "1.3.5"
+      openshift.io/display-name: "Seldon MLServer"
+    labels:
+      opendatahub.io/dashboard: "true"
+    name: seldon-mlserver
+  spec:
+    annotations:
+      prometheus.kserve.io/path: "/metrics"
+      prometheus.kserve.io/port: "8082"
+      serving.kserve.io/enable-prometheus-scraping: "true"
+      serving.kserve.io/enable-route: "true"
+    builtInAdapter:
+      memBufferBytes: 134217728
+      modelLoadingTimeoutMillis: 90000
+      runtimeManagementPort: 8081
+      serverType: mlserver
+    containers:
+    - name: mlserver
+      image: seldonio/mlserver:1.3.5
+      env:
+      - name: MLSERVER_MODEL_IMPLEMENTATION
+        value: "mlserver_sklearn.SKLearnModel"
+      - name: MLSERVER_HTTP_PORT
+        value: "8080"
+      - name: MLSERVER_GRPC_PORT
+        value: "8081"
+      - name: MLSERVER_METRICS_PORT
+        value: "8082"
+      - name: MLSERVER_LOAD_MODELS_AT_STARTUP
+        value: "false"
+      - name: MLSERVER_MODEL_NAME
+        value: "model"
+      - name: MLSERVER_MODEL_URI
+        value: "/mnt/models"
+      - name: MLSERVER_PARALLEL_WORKERS
+        value: "1"
+      ports:
+      - containerPort: 8080
+        name: http
+        protocol: TCP
+      - containerPort: 8081
+        name: grpc
+        protocol: TCP
+      - containerPort: 8082
+        name: metrics
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: "2"
+          memory: 4Gi
+      volumeMounts:
+      - name: model-dir
+        mountPath: /mnt/models
+      livenessProbe:
+        httpGet:
+          path: /v2/health/live
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /v2/health/ready
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 30
+        timeoutSeconds: 10
+    multiModel: true
+    supportedModelFormats:
+    - name: sklearn
+      version: "1"
+      autoSelect: true
+    - name: xgboost
+      version: "1"
+      autoSelect: true
+    - name: lightgbm
+      version: "3"
+      autoSelect: true
+    - name: mlflow
+      version: "1"
+      autoSelect: true
+    - name: huggingface
+      version: "1"
+      autoSelect: true
+    - name: tempo
+      version: "1"
+      autoSelect: true
+    volumes:
+    - name: model-dir
+      emptyDir: {}
