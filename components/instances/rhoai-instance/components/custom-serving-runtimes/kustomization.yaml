@@ -3,8 +3,8 @@ kind: Component
 
 resources:
 # Templates pour l'interface OpenShift AI
-- triton-template.yaml
-- seldon-template.yaml
+- triton-template-custom.yaml
+- seldon-template-custom.yaml
 
 # NVIDIA Triton Inference Server - chapitre 2.11.23
 - triton-runtime.yaml
