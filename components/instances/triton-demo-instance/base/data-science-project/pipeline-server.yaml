@@ -62,19 +62,19 @@ spec:
         name: "mariadb-triton-demo"
         key: "password"
   
-  # Configuration du stockage d'objets (MinIO externe de la Model Registry)
+  # Configuration du stockage d'objets (MinIO déployé localement)
   objectStorage:
     minio:
-      deploy: false  # Utiliser le MinIO existant
-      image: quay.io/minio/minio:latest  # Requis même avec deploy: false
-      # Configuration S3 pour le MinIO externe
+      deploy: true  # Déployer MinIO localement
+      image: quay.io/minio/minio:latest
+      # Configuration S3
       bucket: "mlpipeline"
       s3CredentialsSecret:
         secretName: "mlpipeline-minio-artifact"
         accessKey: "accesskey"
         secretKey: "secretkey"
-      # Configuration de l'endpoint externe
-      externalEndpoint: "minio-api.redhat-ods-applications.svc.cluster.local:9000"
+      # Configuration du stockage
+      pvcSize: "10Gi"
   
   # Configuration de la persistance des artefacts
   persistenceAgent:

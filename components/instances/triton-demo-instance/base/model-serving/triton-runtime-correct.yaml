@@ -1,0 +1,123 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: nvidia-triton-runtime
+  namespace: triton-demo
+  labels:
+    opendatahub.io/dashboard: 'true'
+    opendatahub.io/ootb: 'true'
+  annotations:
+    serving.kserve.io/enable-route: 'true'
+    opendatahub.io/template-name: nvidia-triton-runtime
+    opendatahub.io/serving-runtime-scope: global
+    opendatahub.io/runtime-version: v23.10
+    opendatahub.io/accelerator-name: ''
+    openshift.io/display-name: nvidia-triton-runtime
+    opendatahub.io/template-display-name: NVIDIA Triton Inference Server
+    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
+    opendatahub.io/apiProtocol: REST
+    opendatahub.io/hardware-profile-name: small-serving-1bmle
+    enable-route: 'true'
+spec:
+  annotations:
+    prometheus.kserve.io/path: /metrics
+    prometheus.kserve.io/port: '8002'
+    serving.kserve.io/enable-prometheus-scraping: 'true'
+    serving.kserve.io/enable-route: 'true'
+  builtInAdapter:
+    memBufferBytes: 134217728
+    modelLoadingTimeoutMillis: 90000
+    runtimeManagementPort: 8001
+    serverType: triton
+  containers:
+  - resources:
+      limits:
+        cpu: '8'
+        memory: 10Gi
+      requests:
+        cpu: '4'
+        memory: 8Gi
+    readinessProbe:
+      httpGet:
+        path: /v2/health/ready
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+    name: triton
+    command:
+    - /bin/bash
+    - '-c'
+    livenessProbe:
+      httpGet:
+        path: /v2/health/live
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+    env:
+    - name: STORAGE_URI
+      value: /mnt/models
+    ports:
+    - containerPort: 8080
+      name: http
+      protocol: TCP
+    - containerPort: 8081
+      name: grpc
+      protocol: TCP
+    - containerPort: 8002
+      name: metrics
+      protocol: TCP
+    volumeMounts:
+    - mountPath: /mnt/models
+      name: model-dir
+    - mountPath: /dev/shm
+      name: shm
+    image: 'nvcr.io/nvidia/tritonserver:23.10-py3'
+    args:
+    - |
+      tritonserver \
+        --model-repository=/mnt/models \
+        --model-control-mode=explicit \
+        --strict-model-config=false \
+        --strict-readiness=false \
+        --allow-http=true \
+        --allow-grpc=true \
+        --allow-metrics=true \
+        --allow-gpu-metrics=true \
+        --http-port=8080 \
+        --grpc-port=8081 \
+        --metrics-port=8002 \
+        --http-thread-count=8 \
+        --grpc-max-threads=8 \
+        --log-verbose=1 \
+        --disable-auto-complete-config
+  multiModel: true
+  replicas: 1
+  supportedModelFormats:
+  - autoSelect: true
+    name: tensorflow
+    version: '1'
+  - autoSelect: true
+    name: tensorflow
+    version: '2'
+  - autoSelect: true
+    name: pytorch
+    version: '1'
+  - autoSelect: true
+    name: onnx
+    version: '1'
+  - autoSelect: true
+    name: tensorrt
+    version: '8'
+  - autoSelect: true
+    name: python
+    version: '1'
+  tolerations: []
+  volumes:
+  - emptyDir: {}
+    name: model-dir
+  - emptyDir:
+      medium: Memory
+      sizeLimit: 2Gi
+    name: shm 

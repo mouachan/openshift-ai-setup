@@ -1,0 +1,93 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: nvidia-triton-runtime
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: nvidia-triton-runtime
+    app.kubernetes.io/component: serving-runtime
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+    demo.openshift.ai/type: triton-inference
+spec:
+  supportedModelFormats:
+  - name: tensorflow
+    version: "1"
+    autoSelect: true
+  - name: tensorflow
+    version: "2"
+    autoSelect: true
+  - name: pytorch
+    version: "1"
+    autoSelect: true
+  - name: onnx
+    version: "1"
+    autoSelect: true
+  - name: tensorrt
+    version: "8"
+    autoSelect: true
+  - name: python
+    version: "1"
+    autoSelect: true
+  multiModel: true
+  protocolVersions:
+  - v2
+  grpcDataEndpoint: port:8001
+  grpcEndpoint: port:8001
+  httpDataEndpoint: port:8000
+  containers:
+  - name: triton
+    image: nvcr.io/nvidia/tritonserver:23.12-py3
+    env:
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: "all"
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: "compute,utility"
+    - name: TRITON_LOG_VERBOSE
+      value: "1"
+    - name: TRITON_LOG_INFO
+      value: "true"
+    - name: TRITON_LOG_WARNING
+      value: "true"
+    - name: TRITON_LOG_ERROR
+      value: "true"
+    - name: TRITON_MODEL_REPOSITORY
+      value: "/mnt/models"
+    args:
+    - --model-repository=/mnt/models
+    - --strict-model-config=false
+    - --log-verbose=1
+    - --log-info=true
+    - --log-warning=true
+    - --log-error=true
+    - --allow-http=true
+    - --allow-grpc=true
+    - --http-port=8000
+    - --grpc-port=8001
+    - --metrics-port=8002
+    resources:
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+        nvidia.com/gpu: "1"
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+    ports:
+    - name: http
+      containerPort: 8000
+      protocol: TCP
+    - name: grpc
+      containerPort: 8001
+      protocol: TCP
+    - name: metrics
+      containerPort: 8002
+      protocol: TCP
+    volumeMounts:
+    - name: model-storage
+      mountPath: /mnt/models
+      readOnly: true
+  volumes:
+  - name: model-storage
+    persistentVolumeClaim:
+      claimName: model-storage-pvc 

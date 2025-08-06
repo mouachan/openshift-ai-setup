@@ -8,6 +8,7 @@ resources:
 - pipeline-server.yaml
 - workbench.yaml
 - storage-config.yaml
+- s3-connection-secret.yaml
 
 # Labels communs pour tous les objets
 labels:

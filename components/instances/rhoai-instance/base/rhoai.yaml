@@ -43,7 +43,7 @@ spec:
     kueue:
       managementState: Removed
     modelmeshserving:
-      managementState: Removed
+      managementState: Managed
     ray:
       managementState: Removed
     trustyai:

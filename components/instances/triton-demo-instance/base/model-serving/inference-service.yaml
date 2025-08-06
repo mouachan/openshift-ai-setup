@@ -4,82 +4,26 @@ metadata:
   name: iris-classifier-triton
   namespace: triton-demo
   labels:
-    app.kubernetes.io/name: iris-classifier
+    app.kubernetes.io/name: iris-classifier-triton
     app.kubernetes.io/component: inference-service
     app.kubernetes.io/part-of: openshift-ai-demo
     app.kubernetes.io/managed-by: gitops
     demo.openshift.ai/type: triton-inference
-    # Labels pour l'intégration OpenShift AI
-    opendatahub.io/dashboard: "true"
-    opendatahub.io/project-name: "triton-demo"
+    opendatahub.io/dashboard: 'true'
   annotations:
-    serving.knative.openshift.io/enablePassthrough: "true"
-    openshift.io/display-name: "Iris Classifier - Triton Demo"
-    openshift.io/description: "Modèle de classification Iris déployé avec NVIDIA Triton"
-    # Annotations pour l'intégration avec le Model Registry
-    model-registry.opendatahub.io/registered-model-id: "iris-classifier"
-    model-registry.opendatahub.io/model-version-id: "1"
-    # Annotations pour les métriques et monitoring
-    sidecar.istio.io/inject: "true"
-    sidecar.istio.io/proxyCPU: "100m"
-    sidecar.istio.io/proxyMemory: "128Mi"
+    openshift.io/display-name: "Iris Classifier - Triton"
+    openshift.io/description: "Service d'inférence pour la classification Iris avec Triton"
+    serving.kserve.io/deploymentMode: ModelMesh
 spec:
   predictor:
-    # Configuration du scaling automatique
-    minReplicas: 1
-    maxReplicas: 3
-    scaleTarget: 70  # CPU utilization percentage
-    scaleMetric: concurrency
+    automountServiceAccountToken: false
     model:
       modelFormat:
         name: tensorflow
+        version: '2'
+      name: ''
+      resources: {}
       runtime: nvidia-triton-runtime
-      protocolVersion: v2
-      # Configuration des ressources optimisée pour la démo
-      resources:
-        limits:
-          cpu: "2"
-          memory: "4Gi"
-          # Optionnel : support GPU
-          # nvidia.com/gpu: "1"
-        requests:
-          cpu: "500m"
-          memory: "1Gi"
-      # Configuration du stockage - référence au Model Registry
       storage:
-        # URI S3 vers le modèle dans le Model Registry
-        storageUri: s3://model-registry-bucket/iris-classifier/1
-        # Secret pour l'accès S3
-        key: aws-connection-model-registry
-        # Chemin vers le modèle dans le bucket
-        path: tensorflow_model
-      # Variables d'environnement pour Triton
-      env:
-        - name: TRITON_LOG_VERBOSE
-          value: "1"
-        - name: TRITON_LOG_INFO
-          value: "true"
-        - name: TRITON_LOG_WARNING
-          value: "true"
-        - name: TRITON_LOG_ERROR
-          value: "true"
-        - name: TRITON_MODEL_REPOSITORY
-          value: "/mnt/models"
-      # Arguments pour Triton Server
-      args:
-        - --model-repository=/mnt/models
-        - --strict-model-config=false
-        - --log-verbose=1
-        - --log-info=true
-        - --log-warning=true
-        - --log-error=true
-        - --allow-http=true
-        - --allow-grpc=true
-        - --http-port=8000
-        - --grpc-port=8001
-        - --metrics-port=8002
-  # Configuration du trafic
-  traffic:
-  - tag: latest
-    percent: 100
-    latestRevision: true
+        key: triton-demo-s3-connection
+        path: iris-classifier/1
