@@ -14,11 +14,15 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/version: "2.22"
     environment: development
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/ootb: "true"
   annotations:
     description: "NVIDIA Triton Inference Server - Multi-framework serving runtime"
     openshift.io/display-name: "Triton Runtime 23.10"
     openshift.io/provider-display-name: "NVIDIA"
-    tags: "triton,tensorflow,pytorch,onnx,tensorrt,nvidia,ai,ml"
+    tags: "triton,tensorflow,pytorch,onnx,tensorrt,nvidia,ai,ml,servingruntime"
+    opendatahub.io/apiProtocol: "REST"
+    opendatahub.io/modelServingSupport: '["multi"]'
 objects:
 - apiVersion: serving.kserve.io/v1alpha1
   kind: ServingRuntime

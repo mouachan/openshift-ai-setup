@@ -14,11 +14,15 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/version: "2.22"
     environment: development
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/ootb: "true"
   annotations:
     description: "Seldon MLServer - Multi-framework ML serving runtime"
     openshift.io/display-name: "Seldon MLServer Runtime"
     openshift.io/provider-display-name: "Seldon Technologies"
-    tags: "seldon,mlserver,sklearn,xgboost,lightgbm,mlflow,huggingface,ai,ml"
+    tags: "seldon,mlserver,sklearn,xgboost,lightgbm,mlflow,huggingface,ai,ml,servingruntime"
+    opendatahub.io/apiProtocol: "REST"
+    opendatahub.io/modelServingSupport: '["multi"]'
 objects:
 - apiVersion: serving.kserve.io/v1alpha1
   kind: ServingRuntime
