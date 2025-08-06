@@ -49,6 +49,13 @@ for i in {1..10}; do
     
     if [ $i -eq 10 ]; then
         echo "⚠️  Sync en cours... Vérifiez avec: oc get applications.argoproj.io -n openshift-gitops"
+        # Correction SSL immédiate si Model Registry disponible
+        if oc get modelregistry default-model-registry -n rhoai-model-registries >/dev/null 2>&1; then
+            echo "🔧 Application correction SSL pour Model Registry..."
+            oc annotate route rhods-dashboard -n redhat-ods-applications haproxy.router.openshift.io/backend-protocol=http --overwrite >/dev/null 2>&1 || true
+            oc rollout restart deployment rhods-dashboard -n redhat-ods-applications >/dev/null 2>&1 || true
+            echo "✅ Correction SSL appliquée"
+        fi
     fi
     
     sleep 30
