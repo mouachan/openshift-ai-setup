@@ -33,7 +33,7 @@ spec:
     model:
       modelFormat:
         name: tensorflow
-      runtime: triton-custom-runtime
+      runtime: nvidia-triton-runtime
       protocolVersion: v2
       # Configuration des ressources optimisée pour la démo
       resources:
