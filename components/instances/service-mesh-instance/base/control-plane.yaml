@@ -5,7 +5,7 @@
 apiVersion: maistra.io/v2
 kind: ServiceMeshControlPlane
 metadata:
-  name: basic
+  name: data-science-smcp
   namespace: istio-system
 spec:
   version: v2.6

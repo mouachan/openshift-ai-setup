@@ -8,3 +8,4 @@ spec:
     - rhoai-model-registries
     - knative-serving
     - redhat-ods-applications
+    - triton-demo

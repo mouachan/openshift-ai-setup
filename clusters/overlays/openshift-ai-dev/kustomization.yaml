@@ -20,7 +20,7 @@ resources:
   - ../../../components/instances/model-catalog-enabler/base
   
   # Instances after operators are ready
-  - ../../../components/instances/service-mesh-instance
+  # Service Mesh géré automatiquement par RHOAI
   - ../../../components/instances/serverless-instance
   - ../../../components/instances/pipelines-instance  # ✅ Réactivé pour la démo
   - ../../../components/instances/rhoai-instance      # ✅ Inclut maintenant Model Registry consolidé
