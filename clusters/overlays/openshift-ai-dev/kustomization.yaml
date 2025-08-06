@@ -36,7 +36,6 @@ resources:
 # Apply these patches to customize for dev environment
 patchesStrategicMerge:
   - dev-patches.yaml
-  - remove-pipelines-hub-patch.yaml
 
 # Labels to apply to all resources
 commonLabels:
