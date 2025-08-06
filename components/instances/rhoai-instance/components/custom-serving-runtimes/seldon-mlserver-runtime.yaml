@@ -1,0 +1,111 @@
+# Seldon MLServer Runtime
+# Basé sur le chapitre 2.11.3 de la documentation OpenShift AI 2.22
+# Supporte scikit-learn, XGBoost, LightGBM, MLflow et autres frameworks Python
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: seldon-mlserver-runtime
+  namespace: redhat-ods-applications
+  labels:
+    app.kubernetes.io/name: seldon-mlserver-runtime
+    app.kubernetes.io/component: serving-runtime
+    app.kubernetes.io/part-of: openshift-ai
+    runtime: seldon-mlserver
+spec:
+  annotations:
+    prometheus.kserve.io/path: "/metrics"
+    prometheus.kserve.io/port: "8080"
+    serving.kserve.io/enable-prometheus-scraping: "true"
+    serving.kserve.io/enable-route: "true"
+  multiModel: true
+  supportedModelFormats:
+  # Scikit-learn models
+  - name: sklearn
+    version: "1"
+    autoSelect: true
+  # XGBoost models
+  - name: xgboost
+    version: "1"
+    autoSelect: true
+  # LightGBM models
+  - name: lightgbm
+    version: "3"
+    autoSelect: true
+  # MLflow models
+  - name: mlflow
+    version: "1"
+    autoSelect: true
+  # Hugging Face models
+  - name: huggingface
+    version: "1"
+    autoSelect: true
+  # Custom Python models
+  - name: tempo
+    version: "1"
+    autoSelect: true
+  containers:
+  - name: mlserver
+    image: seldonio/mlserver:1.3.5
+    command:
+    - mlserver
+    - start
+    - /mnt/models
+    args: []
+    ports:
+    - containerPort: 8080
+      name: http
+      protocol: TCP
+    - containerPort: 8081
+      name: grpc
+      protocol: TCP
+    env:
+    - name: MLSERVER_MODEL_REPOSITORY
+      value: "/mnt/models"
+    - name: MLSERVER_GRPC_PORT
+      value: "8081"
+    - name: MLSERVER_HTTP_PORT
+      value: "8080"
+    - name: MLSERVER_LOAD_MODELS_AT_STARTUP
+      value: "false"
+    - name: MLSERVER_MODEL_NAME
+      value: "$(MODEL_NAME)"
+    - name: MLSERVER_HOST
+      value: "0.0.0.0"
+    - name: MLSERVER_GRPC_MAX_MESSAGE_LENGTH
+      value: "4194304"
+    - name: MLSERVER_PARALLEL_WORKERS
+      value: "1"
+    - name: MLSERVER_DEBUG
+      value: "false"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+    volumeMounts:
+    - name: model-dir
+      mountPath: /mnt/models
+    livenessProbe:
+      httpGet:
+        path: /v2/health/live
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /v2/health/ready
+        port: http
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+  volumes:
+  - name: model-dir
+    emptyDir: {}
+  builtInAdapter:
+    serverType: mlserver
+    runtimeManagementPort: 8001
+    memBufferBytes: 134217728
+    modelLoadingTimeoutMillis: 90000

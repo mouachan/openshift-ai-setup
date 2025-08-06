@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+# NVIDIA Triton Inference Server - chapitre 2.11.23
+- triton-runtime.yaml
+
+# Seldon MLServer - chapitre 2.11.3  
+- seldon-mlserver-runtime.yaml
+
+# Configuration pour appliquer les runtimes dans le namespace correct
+namespace: redhat-ods-applications
+
+# Labels communes à tous les runtimes custom
+labels:
+- pairs:
+    app.kubernetes.io/name: custom-serving-runtimes
+    app.kubernetes.io/component: serving-runtime
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/version: "2.22"
+    app.kubernetes.io/managed-by: kustomize
+    environment: development

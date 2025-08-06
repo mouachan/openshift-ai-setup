@@ -6,3 +6,4 @@ resources:
 
 components:
   - components/model-registry/
+  - components/custom-serving-runtimes/
