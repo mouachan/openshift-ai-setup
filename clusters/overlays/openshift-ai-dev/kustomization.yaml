@@ -22,7 +22,7 @@ resources:
   # Instances after operators are ready
   - ../../../components/instances/service-mesh-instance
   - ../../../components/instances/serverless-instance
-  - ../../../components/instances/pipelines-instance  # ✅ Réactivé après suppression conflit Kueue
+  - ../../../components/instances/pipelines-instance  # ✅ Réactivé pour la démo
   - ../../../components/instances/rhoai-instance      # ✅ Inclut maintenant Model Registry consolidé
   
   # Demo instances (after infrastructure is ready)

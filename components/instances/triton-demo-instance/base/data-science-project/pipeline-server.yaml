@@ -1,4 +1,4 @@
-apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
 kind: DataSciencePipelinesApplication
 metadata:
   name: triton-demo-pipelines
@@ -62,26 +62,19 @@ spec:
         name: "mariadb-triton-demo"
         key: "password"
   
-  # Configuration du stockage d'objets (MinIO pour S3)
+  # Configuration du stockage d'objets (MinIO externe de la Model Registry)
   objectStorage:
     minio:
-      deploy: true
-      # Configuration des ressources
-      resources:
-        requests:
-          cpu: "200m"
-          memory: "512Mi"
-        limits:
-          cpu: "500m"
-          memory: "1Gi"
-      # Configuration du stockage
-      pvcSize: "50Gi"
-      # Configuration S3
+      deploy: false  # Utiliser le MinIO existant
+      image: quay.io/minio/minio:latest  # Requis même avec deploy: false
+      # Configuration S3 pour le MinIO externe
       bucket: "mlpipeline"
       s3CredentialsSecret:
         secretName: "mlpipeline-minio-artifact"
         accessKey: "accesskey"
         secretKey: "secretkey"
+      # Configuration de l'endpoint externe
+      externalEndpoint: "minio-api.redhat-ods-applications.svc.cluster.local:9000"
   
   # Configuration de la persistance des artefacts
   persistenceAgent:

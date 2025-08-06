@@ -25,28 +25,25 @@ metadata:
   namespace: redhat-ods-operator
 spec:
   components:
-    codeflare:
-      managementState: Managed
-    kserve:
-      managementState: Managed
-      serving:
-        ingressGateway:
-          certificate:
-            type: SelfSigned
-        managementState: Managed
-    kueue:
-      managementState: Managed
+    # Composants essentiels seulement pour la première démo
     dashboard:
-      managementState: Managed
-    datasciencepipelines:
       managementState: Managed
     workbenches:
       managementState: Managed
-    modelmeshserving:
-      managementState: Managed
-    ray:
-      managementState: Managed
-    trustyai:
-      managementState: Managed
     modelregistry:
       managementState: Managed
+    # Composants désactivés pour simplifier
+    datasciencepipelines:
+      managementState: Managed  # Réactivé car nécessaire pour la démo
+    codeflare:
+      managementState: Removed
+    kserve:
+      managementState: Removed
+    kueue:
+      managementState: Removed
+    modelmeshserving:
+      managementState: Removed
+    ray:
+      managementState: Removed
+    trustyai:
+      managementState: Removed

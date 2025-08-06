@@ -20,8 +20,6 @@ spec:
   pipeline:
     disable-affinity-assistant: false
     disable-creds-init: false
-    disable-home-env-overwrite: true
-    disable-working-directory-overwrite: true
     enable-api-fields: stable
     enable-bundles-resolver: true
     enable-cluster-resolver: true

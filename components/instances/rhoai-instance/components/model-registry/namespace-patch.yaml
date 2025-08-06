@@ -1,0 +1,12 @@
+apiVersion: builtin
+kind: NamespaceTransformer
+metadata:
+  name: force-model-registry-namespace
+  annotations:
+    config.kubernetes.io/function: |
+      container:
+        image: gcr.io/kustomize-functions/example-tshirt:v0.1.0
+namespace: rhoai-model-registries
+fieldSpecs:
+- path: metadata/namespace
+  create: true 

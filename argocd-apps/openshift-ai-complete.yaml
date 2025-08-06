@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openshift-ai-complete
+  namespace: openshift-gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: openshift-ai-complete
+    app.kubernetes.io/part-of: openshift-ai
+    environment: development
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mouachan/openshift-ai-setup.git
+    targetRevision: main
+    path: clusters/overlays/openshift-ai-dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  ignoreDifferences:
+    - group: batch
+      kind: Job
+      jsonPointers:
+        - /spec/selector
+        - /spec/template/metadata/labels
+        - /metadata/labels
+        - /status
+    - jsonPointers:
+        - /spec/volumeName
+        - /metadata/annotations
+        - /status
+      kind: PersistentVolumeClaim
+    - group: datasciencecluster.opendatahub.io
+      jsonPointers:
+        - /status
+        - /metadata/managedFields
+      kind: DataScienceCluster
+    - group: operator.tekton.dev
+      jsonPointers:
+        - /spec/hub
+      kind: TektonConfig
+      name: config 
