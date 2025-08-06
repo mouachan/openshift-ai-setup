@@ -9,6 +9,9 @@
 # Fichiers de sauvegarde
 backup/
 *.backup
+.backup-*/
+.backup-old-structure/
+.backup-complex/
 
 # Fichiers sensibles (ne jamais committer)
 secrets/
