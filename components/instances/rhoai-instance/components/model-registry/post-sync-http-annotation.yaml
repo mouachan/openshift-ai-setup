@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-sync-http-annotation
+  namespace: rhoai-model-registries
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: ssl-fix
+    app.kubernetes.io/part-of: openshift-ai
+spec:
+  template:
+    metadata:
+      labels:
+        app: model-registry-http-fix
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: model-registry-http-fix
+      containers:
+      - name: http-annotation
+        image: quay.io/openshift/origin-cli:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Adding HTTP backend protocol annotation to dashboard route..."
+          oc annotate route rhods-dashboard -n redhat-ods-applications \
+            haproxy.router.openshift.io/backend-protocol=http --overwrite || echo "Route annotation failed, continuing..."
+          echo "HTTP annotation added successfully"

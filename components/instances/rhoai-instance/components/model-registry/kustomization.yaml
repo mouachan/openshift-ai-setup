@@ -1,14 +1,11 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-namespace: rhoai-model-registries
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
 
 resources:
 # Namespace
 - namespace.yaml
 
-# Model Registry core service
-- model-registry.yaml
+# Infrastructure for Model Registry (MySQL backend + S3 storage)
 - model-registry-db-parameters.yaml
 - model-registry-secret.yaml
 
@@ -29,8 +26,5 @@ resources:
 # RBAC - Simple approach like BU
 - rolebinding.yaml
 
-commonLabels:
-  app.kubernetes.io/name: model-registry
-  app.kubernetes.io/component: model-registry-service
-  app.kubernetes.io/part-of: openshift-ai
-  environment: development
+# SSL Fix for Model Registry web interface
+- ssl-fix-configmap.yaml

@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: model-registry-http-fix
+  namespace: rhoai-model-registries
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: ssl-fix
+    app.kubernetes.io/part-of: openshift-ai
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: model-registry-http-fix
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: ssl-fix
+    app.kubernetes.io/part-of: openshift-ai
+rules:
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: model-registry-http-fix
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: ssl-fix
+    app.kubernetes.io/part-of: openshift-ai
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: model-registry-http-fix
+subjects:
+- kind: ServiceAccount
+  name: model-registry-http-fix
+  namespace: rhoai-model-registries

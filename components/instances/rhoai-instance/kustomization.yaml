@@ -3,4 +3,6 @@ kind: Kustomization
 
 resources:
   - base/
+
+components:
   - components/model-registry/
