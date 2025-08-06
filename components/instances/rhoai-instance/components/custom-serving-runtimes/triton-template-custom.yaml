@@ -20,7 +20,7 @@ objects:
   metadata:
     annotations:
       opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
-      opendatahub.io/runtime-version: "23.10"
+      opendatahub.io/runtime-version: "v23.10"
       openshift.io/display-name: "NVIDIA Triton Inference Server"
     labels:
       opendatahub.io/dashboard: "true"

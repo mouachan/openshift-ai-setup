@@ -20,7 +20,7 @@ objects:
   metadata:
     annotations:
       opendatahub.io/recommended-accelerators: '["cpu"]'
-      opendatahub.io/runtime-version: "1.3.5"
+      opendatahub.io/runtime-version: "v1.3.5"
       openshift.io/display-name: "Seldon MLServer"
     labels:
       opendatahub.io/dashboard: "true"
