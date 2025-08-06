@@ -32,12 +32,13 @@ spec:
       managementState: Managed
     modelregistry:
       managementState: Managed
-    # Composants désactivés pour simplifier
+    # Composants essentiels pour la démo
     datasciencepipelines:
       managementState: Managed  # Réactivé car nécessaire pour la démo
-    codeflare:
-      managementState: Removed
     kserve:
+      managementState: Managed  # Essentiel pour l'inference serving (Triton)
+    # Composants désactivés pour simplifier
+    codeflare:
       managementState: Removed
     kueue:
       managementState: Removed
