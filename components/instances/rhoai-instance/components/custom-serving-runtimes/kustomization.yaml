@@ -6,12 +6,5 @@ resources:
 - triton-template-custom.yaml
 - seldon-template-custom.yaml
 
-# Configuration pour appliquer les runtimes dans le namespace correct
+# Configuration pour appliquer les templates dans le namespace correct
 namespace: redhat-ods-applications
-
-# Labels communes à tous les runtimes custom (ne pas écraser les labels OpenShift AI)
-labels:
-- pairs:
-    app.kubernetes.io/instance: openshift-ai-complete
-    app.kubernetes.io/managed-by: kustomize
-    environment: development
