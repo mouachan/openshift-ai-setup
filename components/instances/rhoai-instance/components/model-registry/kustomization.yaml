@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: rhoai-model-registries
+
+resources:
+# Namespace
+- namespace.yaml
+
+# Model Registry core service
+- model-registry.yaml
+- model-registry-db-parameters.yaml
+- model-registry-secret.yaml
+
+# MySQL backend
+- mysql-deployment.yaml
+- mysql-pvc.yaml
+- mysql-secret.yaml
+- mysql-service.yaml
+
+# S3 Storage (MinIO)
+- minio-deployment.yaml
+- minio-pvc.yaml
+- minio-secret.yaml
+- minio-service.yaml
+- minio-route.yaml
+- minio-bucket-init.yaml
+
+# RBAC - Simple approach like BU
+- rolebinding.yaml
+
+commonLabels:
+  app.kubernetes.io/name: model-registry
+  app.kubernetes.io/component: model-registry-service
+  app.kubernetes.io/part-of: openshift-ai
+  environment: development

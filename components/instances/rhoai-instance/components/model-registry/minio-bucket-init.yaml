@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-init
+  namespace: rhoai-model-registries
+  labels:
+    app: minio-init
+    app.kubernetes.io/component: s3-storage-init
+    app.kubernetes.io/name: minio-init
+    app.kubernetes.io/part-of: model-registry
+spec:
+  template:
+    metadata:
+      labels:
+        app: minio-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: mc
+        image: quay.io/minio/mc:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          export MC_CONFIG_DIR=/tmp/.mc
+          echo "Waiting for MinIO to be ready..."
+          until mc alias set myminio http://minio-api:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY; do
+            echo "MinIO not ready, retrying in 5 seconds..."
+            sleep 5
+          done
+          echo "MinIO is ready, creating bucket..."
+          mc mb myminio/model-registry || echo "Bucket already exists"
+          mc policy set public myminio/model-registry
+          echo "Bucket model-registry created and configured successfully"
+        env:
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: access-key
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: secret-key

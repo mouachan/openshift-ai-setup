@@ -2,6 +2,8 @@
 
 Ce repository contient la configuration GitOps complète pour déployer OpenShift AI 2.22 avec Model Registry sur OpenShift.
 
+**✨ Restructuré avec l'approche RH AI Services BU** : "une feature = un répertoire" pour une meilleure maintenabilité.
+
 ## 🚀 Quick Start
 
 ### Prérequis
@@ -35,16 +37,19 @@ Ce repository contient la configuration GitOps complète pour déployer OpenShif
 │       └── openshift-ai-dev/  # Configuration développement
 ├── components/            # Composants Kustomize
 │   ├── operators/         # Opérateurs (GitOps, RHOAI, Service Mesh...)
-│   └── instances/         # Instances (RHOAI, Model Registry, MySQL...)
-├── docs/                  # Documentation
-└── scripts/               # Scripts d'installation
+│   └── instances/         # Instances consolidées
+│       └── rhoai-instance/
+│           ├── base/      # Instance RHOAI de base
+│           └── components/
+│               └── model-registry/  # ✨ Model Registry consolidé
+└── docs/                  # Documentation
 ```
 
 ## 🔧 Composants Inclus
 
 - **OpenShift AI 2.22** (Red Hat OpenShift AI)
-- **Model Registry** avec backends MySQL et MinIO S3
-- **Service Mesh 2.6** pour la connectivité
+- **Model Registry consolidé** avec backends MySQL et MinIO S3
+- **Service Mesh 2.6** pour la connectivité  
 - **OpenShift Serverless** pour KServe
 - **OpenShift Pipelines** pour Tekton
 - **Hooks ArgoCD** pour correction SSL automatique
@@ -52,16 +57,17 @@ Ce repository contient la configuration GitOps complète pour déployer OpenShif
 ## 🎯 Fonctionnalités
 
 ✅ **Déploiement 100% GitOps** - Tout via ArgoCD  
-✅ **Model Registry fonctionnel** - MySQL + MinIO backends  
+✅ **Model Registry consolidé** - Structure "une feature = un répertoire"  
 ✅ **Correction SSL automatique** - Hooks ArgoCD intégrés  
 ✅ **Multi-environnements** - Structure overlay/base  
 ✅ **RBAC configuré** - Permissions utilisateurs  
+✅ **Best Practices RH AI Services BU** - Organisation optimisée
 
 ## 📖 Documentation
 
 - [Installation Guide](docs/installation-guide.md)
-- [Configuration Model Registry](components/instances/model-registry-config/README.md)
-- [ArgoCD Hooks SSL](components/instances/model-registry-config/base/README.md)
+- [Model Registry Consolidé](components/instances/rhoai-instance/components/model-registry/README.md)
+- [Migration Consolidation](MODEL-REGISTRY-CONSOLIDATION.md)
 
 ## 🐛 Troubleshooting
 

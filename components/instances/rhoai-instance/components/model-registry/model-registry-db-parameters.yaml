@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-registry-db-parameters
+  namespace: rhoai-model-registries
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: mysql-backend
+    app.kubernetes.io/part-of: openshift-ai
+data:
+  database: "model_registry"
+  username: "registry"
+  host: "mysql.rhoai-model-registries.svc.cluster.local"
+  port: "3306"

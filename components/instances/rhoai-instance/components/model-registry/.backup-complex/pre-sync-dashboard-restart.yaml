@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-sync-dashboard-restart
+  namespace: redhat-ods-applications
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: dashboard-restart
+    app.kubernetes.io/part-of: openshift-ai
+    environment: development
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dashboard-restart
+    spec:
+      serviceAccountName: dashboard-restart
+      restartPolicy: OnFailure
+      containers:
+      - name: restart-dashboard
+        image: quay.io/openshift/origin-cli:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Pre-sync: Restarting dashboard to clear SSL cache..."
+          
+          # Restart dashboard deployment
+          oc rollout restart deployment/rhods-dashboard -n redhat-ods-applications || {
+            echo "WARNING: Could not restart dashboard, continuing anyway..."
+          }
+          
+          echo "Dashboard restart initiated"

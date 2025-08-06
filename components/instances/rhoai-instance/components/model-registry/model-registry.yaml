@@ -1,0 +1,38 @@
+apiVersion: modelregistry.opendatahub.io/v1beta1
+kind: ModelRegistry
+metadata:
+  name: default-model-registry
+  namespace: rhoai-model-registries
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: model-registry-service
+    app.kubernetes.io/part-of: openshift-ai
+spec:
+  grpc:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+  rest:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+    serviceRoute: disabled
+  mysql:
+    host: mysql.rhoai-model-registries.svc.cluster.local
+    port: 3306
+    database: model_registry
+    username: registry
+    passwordSecret:
+      name: mysql-credentials
+      key: mysql-password
+  istio:
+    audiences:
+    - https://kubernetes.default.svc

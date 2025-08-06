@@ -1,5 +1,6 @@
 # OpenShift AI Development Cluster
 # Déploiement GitOps pour OpenShift AI 2.22 avec Service Mesh et Serverless
+# Restructuré avec l'approche "une feature = un répertoire" (RH AI Services BU pattern)
 # 
 # Utilisation:
 # kubectl apply -k clusters/overlays/openshift-ai-dev
@@ -15,22 +16,14 @@ resources:
   # Operators first (order matters) - includes Jaeger dependency
   - ../../../components/operators/
   
-  # Namespaces needed by components
-  - ../../../components/instances/model-registry-namespace/base
-  
-  # Model Registry Dependencies (MySQL and MinIO S3)
-  - ../../../components/instances/mysql-model-registry/base
-  - ../../../components/instances/minio-s3-storage/base
-  
   # Model Catalog Enabler (Technology Preview)
   - ../../../components/instances/model-catalog-enabler/base
-
   
   # Instances after operators are ready
   - ../../../components/instances/service-mesh-instance
   - ../../../components/instances/serverless-instance
   - ../../../components/instances/pipelines-instance  # ✅ Réactivé après suppression conflit Kueue
-  - ../../../components/instances/rhoai-instance
+  - ../../../components/instances/rhoai-instance      # ✅ Inclut maintenant Model Registry consolidé
 
 
 # Apply these patches to customize for dev environment

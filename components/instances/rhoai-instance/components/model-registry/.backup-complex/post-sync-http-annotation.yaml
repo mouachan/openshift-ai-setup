@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-sync-http-annotation
+  namespace: rhoai-model-registries
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  labels:
+    app.kubernetes.io/name: model-registry
+    app.kubernetes.io/component: model-registry-http-fix
+    app.kubernetes.io/part-of: openshift-ai
+    environment: development
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: model-registry-http-fix
+    spec:
+      serviceAccountName: model-registry-http-fix
+      restartPolicy: OnFailure
+      containers:
+      - name: annotate-service
+        image: quay.io/openshift/origin-cli:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Post-sync: Applying HTTP annotation to Model Registry service..."
+          
+          # Wait for service to exist
+          timeout=300
+          while [ $timeout -gt 0 ]; do
+            if oc get service default-model-registry -n rhoai-model-registries >/dev/null 2>&1; then
+              echo "Service found, applying annotation..."
+              break
+            fi
+            echo "Waiting for service... ($timeout seconds left)"
+            sleep 10
+            timeout=$((timeout - 10))
+          done
+          
+          if [ $timeout -le 0 ]; then
+            echo "ERROR: Service not found after 5 minutes"
+            exit 1
+          fi
+          
+          # Apply the HTTP annotation
+          oc annotate service default-model-registry -n rhoai-model-registries \
+            "routing.opendatahub.io/external-address-rest=default-model-registry.rhoai-model-registries.svc.cluster.local:8080" \
+            --overwrite || exit 1
+          
+          echo "SUCCESS: HTTP annotation applied!"
+          
+          # Verify annotation
+          annotation=$(oc get service default-model-registry -n rhoai-model-registries -o jsonpath='{.metadata.annotations.routing\.opendatahub\.io/external-address-rest}' 2>/dev/null || echo "")
+          if [ "$annotation" = "default-model-registry.rhoai-model-registries.svc.cluster.local:8080" ]; then
+            echo "VERIFIED: Annotation is correctly set to $annotation"
+          else
+            echo "ERROR: Annotation verification failed. Got: $annotation"
+            exit 1
+          fi
