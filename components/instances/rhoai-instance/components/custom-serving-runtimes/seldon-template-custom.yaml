@@ -12,6 +12,7 @@ metadata:
     template.openshift.io/long-description: "This template defines resources needed to deploy Seldon MLServer with KServe in Red Hat OpenShift AI for serving scikit-learn, XGBoost, LightGBM, MLflow, and Hugging Face models."
   labels:
     opendatahub.io/dashboard: "true"
+    opendatahub.io/ootb: "true"
   name: seldon-mlserver-template
   namespace: redhat-ods-applications
 objects:
@@ -22,8 +23,10 @@ objects:
       opendatahub.io/recommended-accelerators: '["cpu"]'
       opendatahub.io/runtime-version: "v1.3.5"
       openshift.io/display-name: "Seldon MLServer"
+      serving.kserve.io/enable-route: "true"
     labels:
       opendatahub.io/dashboard: "true"
+      opendatahub.io/ootb: "true"
     name: seldon-mlserver
   spec:
     annotations:
