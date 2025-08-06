@@ -33,6 +33,3 @@ spec:
     passwordSecret:
       name: mysql-credentials
       key: mysql-password
-  istio:
-    audiences:
-    - https://kubernetes.default.svc

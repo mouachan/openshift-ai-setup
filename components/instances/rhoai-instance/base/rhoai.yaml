@@ -5,7 +5,7 @@ metadata:
   name: default-dsci
   namespace: redhat-ods-operator
 spec:
-  applicationNamespace: redhat-ods-applications
+  applicationsNamespace: redhat-ods-applications
   monitoring:
     managementState: Managed
     namespace: redhat-ods-monitoring
