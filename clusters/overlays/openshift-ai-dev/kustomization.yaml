@@ -24,6 +24,9 @@ resources:
   - ../../../components/instances/serverless-instance
   - ../../../components/instances/pipelines-instance  # ✅ Réactivé après suppression conflit Kueue
   - ../../../components/instances/rhoai-instance      # ✅ Inclut maintenant Model Registry consolidé
+  
+  # Demo instances (after infrastructure is ready)
+  - ../../../components/instances/triton-demo-instance/base  # ✅ Démo Triton intégrée
 
 
 # Apply these patches to customize for dev environment

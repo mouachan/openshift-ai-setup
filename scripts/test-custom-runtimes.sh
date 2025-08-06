@@ -26,12 +26,23 @@ test_result() {
 }
 
 echo "🔍 Test 1: Application ArgoCD synchronisée"
-APP_SYNC=$(oc get application openshift-ai-complete -n openshift-gitops -o jsonpath='{.status.sync.status}' 2>/dev/null)
+APP_SYNC=$(oc get applications.argoproj.io openshift-ai-complete -n openshift-gitops -o jsonpath='{.status.sync.status}' 2>/dev/null)
 [ "$APP_SYNC" = "Synced" ]
 test_result $? "Application ArgoCD synchronisée ($APP_SYNC)"
 
 echo ""
-echo "🔍 Test 2: Serving Runtimes installés"
+echo "🔍 Test 2: Templates installés"
+
+# Test Template NVIDIA Triton
+oc get template nvidia-triton-runtime-template -n redhat-ods-applications >/dev/null 2>&1
+test_result $? "Template NVIDIA Triton présent"
+
+# Test Template Seldon MLServer
+oc get template seldon-mlserver-template -n redhat-ods-applications >/dev/null 2>&1
+test_result $? "Template Seldon MLServer présent"
+
+echo ""
+echo "🔍 Test 3: Serving Runtimes installés"
 
 # Test NVIDIA Triton Runtime
 oc get servingruntime triton-runtime -n redhat-ods-applications >/dev/null 2>&1
@@ -42,7 +53,7 @@ oc get servingruntime seldon-mlserver-runtime -n redhat-ods-applications >/dev/n
 test_result $? "Seldon MLServer Runtime présent"
 
 echo ""
-echo "🔍 Test 3: Configuration des runtimes"
+echo "🔍 Test 4: Configuration des runtimes"
 
 # Vérifier les formats supportés par Triton
 TRITON_FORMATS=$(oc get servingruntime triton-runtime -n redhat-ods-applications -o jsonpath='{.spec.supportedModelFormats[*].name}' 2>/dev/null)
@@ -55,7 +66,7 @@ echo "$SELDON_FORMATS" | grep -q "sklearn" && echo "$SELDON_FORMATS" | grep -q "
 test_result $? "Seldon supporte sklearn, XGBoost, MLflow ($SELDON_FORMATS)"
 
 echo ""
-echo "🔍 Test 4: Configuration Prometheus"
+echo "🔍 Test 5: Configuration Prometheus"
 
 # Vérifier les annotations Prometheus Triton
 TRITON_PROMETHEUS=$(oc get servingruntime triton-runtime -n redhat-ods-applications -o jsonpath='{.spec.annotations}' 2>/dev/null)
@@ -68,7 +79,7 @@ echo "$SELDON_PROMETHEUS" | grep -q "prometheus.kserve.io"
 test_result $? "Seldon - Annotations Prometheus configurées"
 
 echo ""
-echo "🔍 Test 5: Configuration multi-model"
+echo "🔍 Test 6: Configuration multi-model"
 
 # Vérifier multi-model pour Triton
 TRITON_MULTIMODEL=$(oc get servingruntime triton-runtime -n redhat-ods-applications -o jsonpath='{.spec.multiModel}' 2>/dev/null)
@@ -81,7 +92,28 @@ SELDON_MULTIMODEL=$(oc get servingruntime seldon-mlserver-runtime -n redhat-ods-
 test_result $? "Seldon - Multi-model supporté ($SELDON_MULTIMODEL)"
 
 echo ""
-echo "🔍 Test 6: Vérification des images"
+echo "🔍 Test 8: Configuration pour l'interface dashboard"
+
+# Vérifier les annotations d'affichage Triton
+TRITON_DASHBOARD=$(oc get servingruntime triton-runtime -n redhat-ods-applications -o jsonpath='{.metadata.labels.opendatahub\.io/dashboard}' 2>/dev/null)
+[ "$TRITON_DASHBOARD" = "true" ]
+test_result $? "Triton - Label dashboard configuré ($TRITON_DASHBOARD)"
+
+TRITON_DISPLAY=$(oc get servingruntime triton-runtime -n redhat-ods-applications -o jsonpath='{.metadata.annotations.openshift\.io/display-name}' 2>/dev/null)
+[ "$TRITON_DISPLAY" = "NVIDIA Triton Inference Server" ]
+test_result $? "Triton - Nom d'affichage configuré ($TRITON_DISPLAY)"
+
+# Vérifier les annotations d'affichage Seldon
+SELDON_DASHBOARD=$(oc get servingruntime seldon-mlserver-runtime -n redhat-ods-applications -o jsonpath='{.metadata.labels.opendatahub\.io/dashboard}' 2>/dev/null)
+[ "$SELDON_DASHBOARD" = "true" ]
+test_result $? "Seldon - Label dashboard configuré ($SELDON_DASHBOARD)"
+
+SELDON_DISPLAY=$(oc get servingruntime seldon-mlserver-runtime -n redhat-ods-applications -o jsonpath='{.metadata.annotations.openshift\.io/display-name}' 2>/dev/null)
+[ "$SELDON_DISPLAY" = "Seldon MLServer" ]
+test_result $? "Seldon - Nom d'affichage configuré ($SELDON_DISPLAY)"
+
+echo ""
+echo "🔍 Test 7: Vérification des images"
 
 # Vérifier l'image Triton
 TRITON_IMAGE=$(oc get servingruntime triton-runtime -n redhat-ods-applications -o jsonpath='{.spec.containers[0].image}' 2>/dev/null)

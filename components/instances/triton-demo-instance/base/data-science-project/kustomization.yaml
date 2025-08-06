@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: triton-demo
+
+resources:
+- namespace.yaml
+- pipeline-server.yaml
+- workbench.yaml
+- storage-config.yaml
+
+# Labels communs pour tous les objets
+labels:
+- pairs:
+    app.kubernetes.io/name: triton-demo
+    app.kubernetes.io/component: data-science-project
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    demo.openshift.ai/type: triton-inference
+    opendatahub.io/dashboard: "true" 

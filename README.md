@@ -53,12 +53,14 @@ Ce repository contient la configuration GitOps complète pour déployer OpenShif
 - **OpenShift Serverless** pour KServe
 - **OpenShift Pipelines** pour Tekton
 - **Hooks ArgoCD** pour correction SSL automatique
+- **Démo Triton intégrée** avec GitOps unifié
 
 ## 🎯 Fonctionnalités
 
 ✅ **Déploiement 100% GitOps** - Tout via ArgoCD  
 ✅ **Model Registry consolidé** - Structure "une feature = un répertoire"  
 ✅ **Correction SSL automatique** - Hooks ArgoCD intégrés  
+✅ **Démo Triton intégrée** - GitOps unifié pour infrastructure + démos  
 ✅ **Multi-environnements** - Structure overlay/base  
 ✅ **RBAC configuré** - Permissions utilisateurs  
 ✅ **Best Practices RH AI Services BU** - Organisation optimisée

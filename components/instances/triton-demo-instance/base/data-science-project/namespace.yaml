@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: triton-demo
+  labels:
+    # Labels requis pour OpenShift AI
+    opendatahub.io/dashboard: "true"
+    modelmesh-enabled: "true"
+    # Labels pour Data Science Project
+    app.kubernetes.io/name: triton-demo
+    app.kubernetes.io/component: demo
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    demo.openshift.ai/type: triton-inference
+  annotations:
+    openshift.io/display-name: "Triton Demo - Data Science Project"
+    openshift.io/description: "Projet de démonstration pour l'inférence avec NVIDIA Triton"
+    # Annotations pour l'intégration OpenShift AI
+    opendatahub.io/project-type: "datascience"
+    opendatahub.io/project-template: "triton-demo" 

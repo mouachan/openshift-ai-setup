@@ -1,0 +1,25 @@
+# Dépendances pour le pipeline Kubeflow et les scripts de test
+kfp>=2.0.0
+kfp-kubernetes>=1.0.0
+scikit-learn>=1.3.0
+tensorflow>=2.13.0
+pandas>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+model-registry>=0.1.0
+
+# Dépendances pour les notebooks
+jupyter>=1.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Dépendances pour les tests d'inférence
+tritonclient[http]>=2.30.0
+
+# Dépendances pour l'intégration S3
+boto3>=1.28.0
+minio>=7.1.0
+
+# Autres utilitaires
+pyyaml>=6.0
+click>=8.1.0

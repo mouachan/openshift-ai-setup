@@ -1,0 +1,194 @@
+---
+# Secret pour l'accès au Model Registry S3
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-connection-model-registry
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: model-registry-s3-access
+    app.kubernetes.io/component: storage-credentials
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+    opendatahub.io/connection-type: s3
+  annotations:
+    openshift.io/display-name: "Model Registry S3 Access"
+    openshift.io/description: "Credentials pour l'accès au stockage S3 du Model Registry"
+type: Opaque
+data:
+  # Credentials MinIO S3 (à adapter selon votre configuration)
+  AWS_ACCESS_KEY_ID: bWluaW8=  # Base64 de "minio"
+  AWS_SECRET_ACCESS_KEY: bWluaW8xMjM=  # Base64 de "minio123"
+  AWS_DEFAULT_REGION: dXMtZWFzdC0x  # Base64 de "us-east-1"
+  AWS_S3_ENDPOINT: aHR0cDovL21pbmlvLm1vZGVsLXJlZ2lzdHJ5LnN2Yy5jbHVzdGVyLmxvY2FsOjkwMDA=  # Base64 de l'endpoint MinIO
+  AWS_S3_BUCKET: bW9kZWwtcmVnaXN0cnktYnVja2V0  # Base64 de "model-registry-bucket"
+
+---
+# ConfigMap pour la configuration du serving
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: triton-serving-config
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-serving-config
+    app.kubernetes.io/component: model-serving-config
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+  annotations:
+    openshift.io/display-name: "Triton Serving Configuration"
+    openshift.io/description: "Configuration pour le serving de modèles avec Triton"
+data:
+  # Configuration du modèle Iris
+  iris_model_config.pbtxt: |
+    name: "iris_classifier"
+    platform: "tensorflow_savedmodel"
+    max_batch_size: 32
+    input [
+      {
+        name: "input_features"
+        data_type: TYPE_FP32
+        dims: [ 4 ]
+      }
+    ]
+    output [
+      {
+        name: "predictions"
+        data_type: TYPE_INT64
+        dims: [ 1 ]
+      },
+      {
+        name: "probabilities"
+        data_type: TYPE_FP32
+        dims: [ 3 ]
+      }
+    ]
+    version_policy: { all: {} }
+    
+  # Configuration des métriques Prometheus
+  prometheus_config.yaml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+    - job_name: 'triton-metrics'
+      static_configs:
+      - targets: ['localhost:8002']
+      metrics_path: '/metrics'
+      scrape_interval: 5s
+    
+  # Configuration des logs
+  logging_config.yaml: |
+    version: 1
+    disable_existing_loggers: false
+    formatters:
+      standard:
+        format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    handlers:
+      default:
+        level: INFO
+        formatter: standard
+        class: logging.StreamHandler
+        stream: ext://sys.stdout
+    loggers:
+      triton:
+        level: INFO
+        handlers: [default]
+        propagate: false
+    root:
+      level: INFO
+      handlers: [default]
+
+---
+# Service pour exposer les métriques Triton
+apiVersion: v1
+kind: Service
+metadata:
+  name: triton-metrics-service
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-metrics
+    app.kubernetes.io/component: metrics-service
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+  annotations:
+    openshift.io/display-name: "Triton Metrics Service"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8002"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: metrics
+    port: 8002
+    targetPort: 8002
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: iris-classifier
+
+---
+# ServiceMonitor pour Prometheus Operator
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: triton-inference-metrics
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-metrics-monitor
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: triton-metrics
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+# HorizontalPodAutoscaler pour le scaling automatique
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: iris-classifier-hpa
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: iris-classifier-hpa
+    app.kubernetes.io/component: autoscaling
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+spec:
+  scaleTargetRef:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: iris-classifier-triton-predictor
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30

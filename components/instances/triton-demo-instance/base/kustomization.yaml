@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: triton-demo-instance
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"  # Après RHOAI et pipelines
+
+# Ressources de la démo Triton
+resources:
+- data-science-project/  # Projet Data Science avec workbench et pipelines
+- model-serving/         # Configuration du serving avec KServe
+
+# Labels communs pour tous les objets
+labels:
+- pairs:
+    app.kubernetes.io/name: triton-demo
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: demo
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    demo.openshift.ai/type: triton-inference
+    demo.openshift.ai/scope: complete
+    opendatahub.io/dashboard: "true" 

@@ -1,0 +1,127 @@
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
+kind: DataSciencePipelinesApplication
+metadata:
+  name: triton-demo-pipelines
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-demo-pipelines
+    app.kubernetes.io/component: pipeline-server
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+    demo.openshift.ai/type: triton-inference
+  annotations:
+    openshift.io/display-name: "Triton Demo - Pipeline Server"
+    openshift.io/description: "Serveur de pipelines Kubeflow pour la démo Triton"
+spec:
+  # Configuration du serveur de pipelines
+  apiServer:
+    # Configuration des ressources
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    # Réplication pour la haute disponibilité
+    deploy: true
+    enableSamplePipeline: false
+    autoUpdatePipelineDefaultVersion: true
+    # Configuration de l'archive
+    archiveLogs: true
+    # Configuration de la collecte des métriques
+    collectMetrics: true
+    # Configuration des logs structurés
+    enableOauth: true
+    stripEOF: true
+    terminateStatus: Cancelled
+    trackArtifacts: true
+    # Variables d'environnement
+    env:
+      DEFAULTPIPELINERUNNERSERVICEACCOUNT: "pipeline-runner"
+  
+  # Configuration de la base de données
+  database:
+    # Utilisation de MariaDB/MySQL
+    mariaDB:
+      deploy: true
+      # Configuration des ressources
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "300m"
+          memory: "512Mi"
+      # Configuration du stockage
+      pipelineDBSize: "10Gi"
+      pvcSize: "20Gi"
+      # Configuration de la sauvegarde
+      username: "mlpipeline"
+      passwordSecret:
+        name: "mariadb-triton-demo"
+        key: "password"
+  
+  # Configuration du stockage d'objets (MinIO pour S3)
+  objectStorage:
+    minio:
+      deploy: true
+      # Configuration des ressources
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "512Mi"
+        limits:
+          cpu: "500m"
+          memory: "1Gi"
+      # Configuration du stockage
+      pvcSize: "50Gi"
+      # Configuration S3
+      bucket: "mlpipeline"
+      s3CredentialsSecret:
+        secretName: "mlpipeline-minio-artifact"
+        accessKey: "accesskey"
+        secretKey: "secretkey"
+  
+  # Configuration de la persistance des artefacts
+  persistenceAgent:
+    deploy: true
+    # Configuration des ressources
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    # Intervalle de synchronisation
+    numWorkers: 2
+  
+  # Configuration du planificateur de workflows
+  scheduledWorkflow:
+    deploy: true
+    # Configuration des ressources
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    # Configuration du cron
+    cronScheduleTimezone: "UTC"
+  
+  # Configuration de l'interface utilisateur ML Pipeline
+  mlpipelineUI:
+    deploy: true
+    # Configuration des ressources
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    # Configuration du serveur web
+    configMap: "ml-pipeline-ui-configmap"
+    image: "registry.redhat.io/ubi8/ubi:latest"

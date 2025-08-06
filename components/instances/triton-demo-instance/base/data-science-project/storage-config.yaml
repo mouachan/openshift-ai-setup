@@ -1,0 +1,170 @@
+---
+# PVC pour le workbench
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: triton-workbench-pvc
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-workbench-storage
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+  annotations:
+    openshift.io/display-name: "Triton Workbench Storage"
+    openshift.io/description: "Stockage persistant pour le workbench Triton"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: gp3-csi
+  volumeMode: Filesystem
+
+---
+# Service Account pour le workbench
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: triton-workbench-sa
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-workbench-sa
+    app.kubernetes.io/component: service-account
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.first: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"triton-workbench"}}'
+
+---
+# ClusterRoleBinding pour l'accès aux pipelines
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triton-workbench-pipelines
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-workbench-rbac
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+subjects:
+- kind: ServiceAccount
+  name: triton-workbench-sa
+  namespace: triton-demo
+roleRef:
+  kind: ClusterRole
+  name: ds-pipeline-user
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Role pour l'accès au namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: triton-workbench-namespace-access
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-workbench-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "persistentvolumeclaims", "events", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["serving.kserve.io"]
+  resources: ["inferenceservices"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["kubeflow.org"]
+  resources: ["notebooks"]
+  verbs: ["get", "list", "watch"]
+
+---
+# RoleBinding pour lier le role au service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triton-workbench-namespace-access
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-workbench-rolebinding
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+subjects:
+- kind: ServiceAccount
+  name: triton-workbench-sa
+  namespace: triton-demo
+roleRef:
+  kind: Role
+  name: triton-workbench-namespace-access
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Secret pour les credentials MariaDB
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb-triton-demo
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: mariadb-credentials
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+type: Opaque
+data:
+  password: dHJpdG9uLWRlbW8tcGFzcw==  # Base64 de "triton-demo-pass"
+
+---
+# ConfigMap pour la configuration Elyra
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elyra-config
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: elyra-config
+    app.kubernetes.io/component: configuration
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+data:
+  # Configuration runtime Kubeflow Pipelines
+  kubeflow_pipelines.json: |
+    {
+      "display_name": "Triton Demo - Kubeflow Pipelines",
+      "metadata": {
+        "api_endpoint": "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster.local",
+        "api_username": "",
+        "api_password": "",
+        "cos_endpoint": "http://minio-triton-demo-pipelines-triton-demo.apps.cluster.local",
+        "cos_username": "minio",
+        "cos_password": "minio123",
+        "cos_bucket": "mlpipeline",
+        "tags": [],
+        "engine": "Kubeflow Pipelines",
+        "auth_type": "NO_AUTHENTICATION",
+        "runtime_type": "KUBEFLOW_PIPELINES"
+      },
+      "schema_name": "kfp",
+      "name": "triton_demo_kfp"
+    }
+  
+  # Configuration pour les images de base des composants pipeline
+  component_catalogs.json: |
+    {
+      "display_name": "Triton Demo - Component Catalog",
+      "metadata": {
+        "description": "Catalogue de composants pour la démo Triton",
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "categories": ["Machine Learning", "Data Processing"],
+        "tags": ["triton", "tensorflow", "scikit-learn"]
+      },
+      "schema_name": "local-file-catalog",
+      "name": "triton_demo_catalog"
+    }
