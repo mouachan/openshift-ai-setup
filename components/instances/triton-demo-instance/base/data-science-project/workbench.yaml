@@ -4,194 +4,214 @@ metadata:
   name: triton-workbench
   namespace: triton-demo
   labels:
-    app.kubernetes.io/name: triton-workbench
-    app.kubernetes.io/component: workbench
-    app.kubernetes.io/part-of: openshift-ai-demo
-    app.kubernetes.io/managed-by: gitops
-    demo.openshift.ai/type: triton-inference
+    app: triton-workbench
     opendatahub.io/dashboard: "true"
     opendatahub.io/odh-managed: "true"
+    opendatahub.io/user: demo-user
   annotations:
-    openshift.io/display-name: "Triton Demo - Data Science Workbench"
-    openshift.io/description: "Workbench Jupyter pour développement avec image standard data science"
     notebooks.opendatahub.io/inject-oauth: "true"
-    notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.cluster.local/projects/triton-demo"
-    opendatahub.io/username: "demo-user"
+    opendatahub.io/image-display-name: "Standard Data Science"
+    notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.cluster.local/projects/triton-demo?notebookLogout=triton-workbench"
     opendatahub.io/accelerator-name: ""
+    openshift.io/description: "Workbench Jupyter pour développement avec image standard data science"
+    openshift.io/display-name: "Triton Demo - Data Science Workbench"
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: "latest"
+    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2025.1"
+    opendatahub.io/hardware-profile-namespace: ""
+    notebooks.opendatahub.io/last-size-selection: "Small"
+    opendatahub.io/username: "demo-user"
+    opendatahub.io/hardware-profile-name: ""
+    opendatahub.io/workbench-image-namespace: ""
 spec:
   template:
     spec:
-      # Affinity pour optimiser le placement
-      affinity:
-        nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
-              - key: node-role.kubernetes.io/worker
-                operator: In
-                values:
-                - ""
-      
-      # Configuration des conteneurs
       containers:
-      - name: triton-workbench
-        # Image Jupyter standard d'OpenShift AI
-        image: registry.redhat.io/odh/jupyterhub-singleuser-profile:2024.1
-        imagePullPolicy: Always
-        
-        # Configuration des ressources
-        resources:
-          requests:
-            cpu: "500m"
-            memory: "2Gi"
-          limits:
-            cpu: "2"
-            memory: "8Gi"
-        
-        # Variables d'environnement pour l'intégration
-        env:
-        - name: NOTEBOOK_ARGS
-          value: |
-            --ServerApp.port=8888
-            --ServerApp.token=''
-            --ServerApp.password=''
-            --ServerApp.base_url=/notebook/triton-demo/triton-workbench
-            --ServerApp.quit_button=False
-            --ServerApp.tornado_settings={"user":"demo-user","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.local","hub_prefix":"/projects/triton-demo"}
-        - name: JUPYTER_IMAGE
-          value: registry.redhat.io/odh/jupyterhub-singleuser-profile:2024.1
-        
-        # Configuration Elyra pour les pipelines
-        - name: ELYRA_ENABLE_SCRIPT_EXECUTION
-          value: "True"
-        - name: ELYRA_METADATA_STORE_CLASS
-          value: "elyra.metadata.file.FileMetadataStore"
-        - name: ELYRA_RUNTIME_ENV
-          value: "kubeflow_pipelines"
-        
-        # Configuration Kubeflow
-        - name: KF_PIPELINES_ENDPOINT
-          value: "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster.local"
-        - name: KF_PIPELINES_UI_ENDPOINT
-          value: "https://ds-pipeline-ui-triton-demo-pipelines-triton-demo.apps.cluster.local"
-        
-        # Configuration Model Registry
-        - name: MODEL_REGISTRY_URL
-          value: "http://model-registry-service.rhoai-model-registries.svc.cluster.local:8080"
-        - name: MODEL_REGISTRY_DATABASE_URL
-          value: "mysql://model_registry:password@mysql.db-ai.svc.cluster.local:3306/model_registry"
-        
-        # Configuration S3/MinIO externe
-        - name: AWS_ACCESS_KEY_ID
-          value: "minio"
-        - name: AWS_SECRET_ACCESS_KEY
-          value: "minio123"
-        - name: AWS_S3_ENDPOINT
-          value: "minio-api.minio.svc.cluster.local:9000"
-        - name: AWS_S3_BUCKET
-          value: "model-registry-bucket"
-        
-        # Ports exposés
-        ports:
-        - name: notebook-port
-          containerPort: 8888
-          protocol: TCP
-        
-        # Volume mounts pour la persistance
-        volumeMounts:
-        - name: triton-workbench-pvc
-          mountPath: /opt/app-root/src
-        - name: shm
-          mountPath: /dev/shm
-        
-        # Configuration de sécurité
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          runAsUser: 1000910000
-          seccompProfile:
-            type: RuntimeDefault
-        
-        # Commande de démarrage
-        command:
-        - /bin/bash
-        - -c
-        args:
-        - |
-          # Installation des packages requis
-          pip install --quiet --no-cache-dir \
-            elyra[kfp-tekton] \
-            kfp>=2.0.0 \
-            kubeflow-katib \
-            model-registry \
-            tritonclient[http] \
-            scikit-learn \
-            tensorflow \
-            matplotlib \
-            seaborn \
-            git
-          
-          # Configuration Elyra
-          mkdir -p /opt/app-root/src/.local/share/jupyter/metadata/runtimes
-          
-          # Clonage de la démo Triton depuis GitHub
-          cd /opt/app-root/src
-          if [ ! -d "triton-demo" ]; then
-            echo "📥 Clonage de la démo Triton depuis GitHub..."
-            git clone https://github.com/mouachan/openshift-ai-setup.git temp-repo
-            cp -r temp-repo/demos/triton-example triton-demo
-            rm -rf temp-repo
-            echo "✅ Démo Triton clonée avec succès"
-          else
-            echo "📁 Démo Triton déjà présente"
-          fi
-          
-          # Configuration des permissions
-          chmod -R 755 /opt/app-root/src/triton-demo
-          
-          # Démarrage de Jupyter
-          jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.base_url=/notebook/triton-demo/triton-workbench
-        
-        # Probes de santé
-        livenessProbe:
-          httpGet:
-            path: /notebook/triton-demo/triton-workbench/api
-            port: notebook-port
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 3
-        
-        readinessProbe:
-          httpGet:
-            path: /notebook/triton-demo/triton-workbench/api
-            port: notebook-port
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-      
-      # Configuration des volumes
+        - resources:
+            limits:
+              cpu: '2'
+              memory: 8Gi
+            requests:
+              cpu: '1'
+              memory: 8Gi
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /notebook/triton-demo/triton-workbench/api
+              port: notebook-port
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: triton-workbench
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /notebook/triton-demo/triton-workbench/api
+              port: notebook-port
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          env:
+            - name: NOTEBOOK_ARGS
+              value: |-
+                --ServerApp.port=8888
+                --ServerApp.token=''
+                --ServerApp.password=''
+                --ServerApp.base_url=/notebook/triton-demo/triton-workbench
+                --ServerApp.quit_button=False
+                --ServerApp.tornado_settings={"user":"demo-user","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.local","hub_prefix":"/projects/triton-demo"}
+            - name: JUPYTER_IMAGE
+              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
+            - name: PIP_CERT
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: REQUESTS_CA_BUNDLE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: SSL_CERT_FILE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: PIPELINES_SSL_SA_CERTS
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: GIT_SSL_CAINFO
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            # Configuration Elyra pour les pipelines
+            - name: ELYRA_ENABLE_SCRIPT_EXECUTION
+              value: "True"
+            - name: ELYRA_METADATA_STORE_CLASS
+              value: "elyra.metadata.file.FileMetadataStore"
+            - name: ELYRA_RUNTIME_ENV
+              value: "kubeflow_pipelines"
+            # Configuration Kubeflow
+            - name: KF_PIPELINES_ENDPOINT
+              value: "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster.local"
+            - name: KF_PIPELINES_UI_ENDPOINT
+              value: "https://ds-pipeline-ui-triton-demo-pipelines-triton-demo.apps.cluster.local"
+            # Configuration Model Registry
+            - name: MODEL_REGISTRY_URL
+              value: "http://model-registry-service.rhoai-model-registries.svc.cluster.local:8080"
+            - name: MODEL_REGISTRY_DATABASE_URL
+              value: "mysql://model_registry:password@mysql.db-ai.svc.cluster.local:3306/model_registry"
+            # Configuration S3/MinIO externe
+            - name: AWS_ACCESS_KEY_ID
+              value: "minio"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "minio123"
+            - name: AWS_S3_ENDPOINT
+              value: "minio-api.minio.svc.cluster.local:9000"
+            - name: AWS_S3_BUCKET
+              value: "model-registry-bucket"
+          ports:
+            - containerPort: 8888
+              name: notebook-port
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /opt/app-root/src/
+              name: triton-workbench-storage
+            - mountPath: /dev/shm
+              name: shm
+            - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
+              name: trusted-ca
+              readOnly: true
+              subPath: ca-bundle.crt
+            - mountPath: /opt/app-root/pipeline-runtimes/
+              name: runtime-images
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
+          workingDir: /opt/app-root/src
+        - resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /oauth/healthz
+              port: oauth-proxy
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: oauth-proxy
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /oauth/healthz
+              port: oauth-proxy
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 8443
+              name: oauth-proxy
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /etc/oauth/client
+              name: oauth-client
+            - mountPath: /etc/oauth/config
+              name: oauth-config
+            - mountPath: /etc/tls/private
+              name: tls-certificates
+          image: 'registry.redhat.io/openshift4/ose-oauth-proxy@sha256:4f8d66597feeb32bb18699326029f9a71a5aca4a57679d636b876377c2e95695'
+          args:
+            - '--provider=openshift'
+            - '--https-address=:8443'
+            - '--http-address='
+            - '--openshift-service-account=triton-workbench'
+            - '--cookie-secret-file=/etc/oauth/config/cookie_secret'
+            - '--cookie-expire=24h0m0s'
+            - '--tls-cert=/etc/tls/private/tls.crt'
+            - '--tls-key=/etc/tls/private/tls.key'
+            - '--upstream=http://localhost:8888'
+            - '--upstream-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+            - '--email-domain=*'
+            - '--skip-provider-button'
+            - '--client-id=triton-workbench-triton-demo-oauth-client'
+            - '--client-secret-file=/etc/oauth/client/secret'
+            - '--scope=user:info user:check-access'
+            - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"triton-workbench","namespace":"$(NAMESPACE)"}'
+            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.cluster.local/projects/triton-demo?notebookLogout=triton-workbench'
+      enableServiceLinks: false
+      serviceAccountName: triton-workbench
       volumes:
-      - name: triton-workbench-pvc
-        persistentVolumeClaim:
-          claimName: triton-workbench-pvc
-      - name: shm
-        emptyDir:
-          medium: Memory
-          sizeLimit: 2Gi
-      
-      # Service Account pour l'accès aux API K8s
-      serviceAccountName: triton-workbench-sa
-      
-      # Configuration de sécurité
-      securityContext:
-        fsGroup: 1000910000
-        supplementalGroups:
-        - 1000910000
+        - name: triton-workbench-storage
+          persistentVolumeClaim:
+            claimName: triton-workbench-pvc
+        - emptyDir:
+            medium: Memory
+          name: shm
+        - configMap:
+            items:
+              - key: ca-bundle.crt
+                path: ca-bundle.crt
+            name: workbench-trusted-ca-bundle
+            optional: true
+          name: trusted-ca
+        - configMap:
+            name: pipeline-runtime-images
+            optional: true
+          name: runtime-images
+        - name: oauth-config
+          secret:
+            defaultMode: 420
+            secretName: triton-workbench-oauth-config
+        - name: oauth-client
+          secret:
+            defaultMode: 420
+            secretName: triton-workbench-oauth-client
+        - name: tls-certificates
+          secret:
+            defaultMode: 420
+            secretName: triton-workbench-tls

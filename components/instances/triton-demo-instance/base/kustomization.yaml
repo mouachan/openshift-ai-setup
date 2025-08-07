@@ -10,7 +10,6 @@ metadata:
 resources:
 - data-science-project/  # Projet Data Science avec workbench et pipelines
 - model-serving/         # Configuration du serving avec KServe
-- data-science-project/workbench-scc.yaml  # Configuration SCC pour le workbench
 
 # Labels communs pour tous les objets
 labels:
