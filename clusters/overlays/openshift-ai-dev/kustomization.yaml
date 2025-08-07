@@ -29,19 +29,22 @@ resources:
   - ../../../components/instances/pipelines-instance
 
   # RHOAI et ses composants (sync-wave: "3")
-  - ../../../components/instances/rhoai-instance
+  - ../../../components/instances/rhoai-instance/base
 
   # Démo Triton (sync-wave: "4")
   - ../../../components/instances/triton-demo-instance/base
 
 
 # Apply these patches to customize for dev environment
-patchesStrategicMerge:
-  - dev-patches.yaml
+patches:
+  - path: dev-patches.yaml
+    target:
+      kind: Kustomization
 
 # Labels to apply to all resources
-commonLabels:
-  app.kubernetes.io/name: openshift-ai
-  app.kubernetes.io/version: "2.22"
-  app.kubernetes.io/managed-by: kustomize
-  environment: development
+labels:
+  - pairs:
+      app.kubernetes.io/name: openshift-ai
+      app.kubernetes.io/version: "2.22"
+      app.kubernetes.io/managed-by: kustomize
+      environment: development

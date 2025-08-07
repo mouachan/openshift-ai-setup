@@ -24,9 +24,10 @@ resources:
   - openshift-gitops-operator/        # ✅ GitOps (déjà installé)
 
 # Labels to apply to all resources
-commonLabels:
-  app.kubernetes.io/name: openshift-ai
-  app.kubernetes.io/component: operator
-  app.kubernetes.io/version: "2.22"
-  app.kubernetes.io/managed-by: kustomize
-  environment: development
+labels:
+  - pairs:
+      app.kubernetes.io/name: openshift-ai
+      app.kubernetes.io/component: operator
+      app.kubernetes.io/version: "2.22"
+      app.kubernetes.io/managed-by: kustomize
+      environment: development
