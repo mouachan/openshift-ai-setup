@@ -1,6 +1,6 @@
 # Model Registry Instance pour OpenShift AI 2.22
 # Utilise MySQL et MinIO externes
-apiVersion: modelregistry.opendatahub.io/v1
+apiVersion: modelregistry.opendatahub.io/v1alpha1
 kind: ModelRegistry
 metadata:
   name: triton-demo-registry

@@ -22,6 +22,10 @@ spec:
         - -c
         args:
         - |
+          # Configuration du répertoire de travail
+          export MC_CONFIG_DIR=/tmp/.mc
+          mkdir -p $MC_CONFIG_DIR
+          
           # Attendre que MinIO soit prêt
           until mc alias set myminio http://minio-api:9000 minio minio123; do
             echo "Waiting for MinIO to be ready..."
