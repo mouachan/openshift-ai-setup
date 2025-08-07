@@ -36,8 +36,8 @@ spec:
       # Configuration des conteneurs
       containers:
       - name: triton-workbench
-        # Image standard data science d'OpenShift AI
-        image: registry.redhat.io/ubi8/python-39:latest
+        # Image Jupyter standard d'OpenShift AI
+        image: registry.redhat.io/odh/jupyterhub-singleuser-profile:2024.1
         imagePullPolicy: Always
         
         # Configuration des ressources
@@ -60,7 +60,7 @@ spec:
             --ServerApp.quit_button=False
             --ServerApp.tornado_settings={"user":"demo-user","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.local","hub_prefix":"/projects/triton-demo"}
         - name: JUPYTER_IMAGE
-          value: registry.redhat.io/ubi8/python-39:latest
+          value: registry.redhat.io/odh/jupyterhub-singleuser-profile:2024.1
         
         # Configuration Elyra pour les pipelines
         - name: ELYRA_ENABLE_SCRIPT_EXECUTION
@@ -153,8 +153,8 @@ spec:
           # Configuration des permissions
           chmod -R 755 /opt/app-root/src/triton-demo
           
-          # Démarrage de Jupyter avec Elyra
-          start-notebook.sh ${NOTEBOOK_ARGS}
+          # Démarrage de Jupyter
+          jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.base_url=/notebook/triton-demo/triton-workbench
         
         # Probes de santé
         livenessProbe:
