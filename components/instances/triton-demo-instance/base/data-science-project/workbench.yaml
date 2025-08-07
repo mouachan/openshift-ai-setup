@@ -78,25 +78,19 @@ spec:
         
         # Configuration Model Registry
         - name: MODEL_REGISTRY_URL
-          value: "http://model-registry-service.model-registry.svc.cluster.local:8080"
+          value: "http://model-registry-service.rhoai-model-registries.svc.cluster.local:8080"
         - name: MODEL_REGISTRY_DATABASE_URL
-          value: "mysql://root:password@mysql.model-registry.svc.cluster.local:3306/model_registry"
+          value: "mysql://model_registry:password@mysql.db-ai.svc.cluster.local:3306/model_registry"
         
-        # Configuration S3/MinIO
+        # Configuration S3/MinIO externe
         - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: mlpipeline-minio-artifact
-              key: accesskey
+          value: "minio"
         - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: mlpipeline-minio-artifact
-              key: secretkey
+          value: "minio123"
         - name: AWS_S3_ENDPOINT
-          value: "minio-triton-demo-pipelines-triton-demo.apps.cluster.local"
+          value: "minio-api.minio.svc.cluster.local:9000"
         - name: AWS_S3_BUCKET
-          value: "mlpipeline"
+          value: "model-registry-bucket"
         
         # Ports exposés
         ports:

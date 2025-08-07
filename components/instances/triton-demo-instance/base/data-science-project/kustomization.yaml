@@ -1,6 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+metadata:
+  name: triton-demo-data-science-project
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+
 namespace: triton-demo
 
 resources:
@@ -9,6 +14,8 @@ resources:
 - workbench.yaml
 - storage-config.yaml
 - s3-connection-secret.yaml
+- pipeline-minio-secret.yaml
+- pipeline-db-secret.yaml
 
 # Labels communs pour tous les objets
 labels:
