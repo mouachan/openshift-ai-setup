@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-user-init
+  namespace: db-ai
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    environment: development
+spec:
+  template:
+    spec:
+      containers:
+      - name: mysql-init
+        image: mysql:8.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Attendre que MySQL soit prêt
+          until mysql -h mysql -u root -ppassword -e "SELECT 1"; do
+            echo "Waiting for MySQL to be ready..."
+            sleep 5
+          done
+          
+          # Créer la base de données model_registry si elle n'existe pas
+          mysql -h mysql -u root -ppassword -e "CREATE DATABASE IF NOT EXISTS model_registry;"
+          
+          # Créer l'utilisateur model_registry avec les permissions
+          mysql -h mysql -u root -ppassword -e "
+            CREATE USER IF NOT EXISTS 'model_registry'@'%' IDENTIFIED BY 'password';
+            GRANT ALL PRIVILEGES ON model_registry.* TO 'model_registry'@'%';
+            FLUSH PRIVILEGES;
+          "
+          
+          echo "MySQL initialization completed"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: mysql-root-password
+      restartPolicy: OnFailure 

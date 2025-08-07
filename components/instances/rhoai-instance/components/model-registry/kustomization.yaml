@@ -1,31 +1,15 @@
-apiVersion: kustomize.config.k8s.io/v1alpha1
-kind: Component
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: model-registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 
 namespace: rhoai-model-registries
 
 resources:
-# Namespace
 - namespace.yaml
-
-# Infrastructure for Model Registry (MySQL backend + S3 storage)
 - model-registry-db-parameters.yaml
 - model-registry-secret.yaml
-
-# MySQL backend
-- mysql-deployment.yaml
-- mysql-pvc.yaml
-- mysql-secret.yaml
-- mysql-service.yaml
-
-# S3 Storage (MinIO)
-- minio-serviceaccount.yaml
-- minio-scc-binding.yaml
-- minio-deployment.yaml
-- minio-pvc.yaml
-- minio-secret.yaml
-- minio-service.yaml
-- minio-route.yaml
-- minio-bucket-init.yaml
-
-# RBAC - Simple approach like BU
 - rolebinding.yaml

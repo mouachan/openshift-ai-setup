@@ -2,12 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: rhoai-model-registries
+  namespace: db-ai
   labels:
-    app: mysql
-    app.kubernetes.io/component: database
     app.kubernetes.io/name: mysql
-    app.kubernetes.io/part-of: model-registry
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    environment: development
 spec:
   replicas: 1
   selector:
@@ -17,14 +18,13 @@ spec:
     metadata:
       labels:
         app: mysql
-        app.kubernetes.io/managed-by: kustomize
-        app.kubernetes.io/name: openshift-ai
-        app.kubernetes.io/version: "2.22"
-        environment: development
     spec:
       containers:
       - name: mysql
         image: mysql:8.0
+        ports:
+        - containerPort: 3306
+          name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -46,14 +46,8 @@ spec:
             secretKeyRef:
               name: mysql-credentials
               key: mysql-database
-        command:
-        - mysqld
-        - --default-authentication-plugin=mysql_native_password
-        ports:
-        - containerPort: 3306
-          name: mysql
         volumeMounts:
-        - name: mysql-persistent-storage
+        - name: mysql-storage
           mountPath: /var/lib/mysql
         resources:
           requests:
@@ -77,6 +71,6 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 2
       volumes:
-      - name: mysql-persistent-storage
+      - name: mysql-storage
         persistentVolumeClaim:
-          claimName: mysql-pvc
+          claimName: mysql-pvc 

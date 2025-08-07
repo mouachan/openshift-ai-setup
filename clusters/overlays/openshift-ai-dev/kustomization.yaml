@@ -10,23 +10,29 @@ kind: Kustomization
 
 metadata:
   name: openshift-ai-dev
-  
-# Base resources
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
 resources:
-  # Operators first (order matters) - includes Jaeger dependency
-  - ../../../components/operators/
-  
-  # Model Catalog Enabler (Technology Preview)
-  - ../../../components/instances/model-catalog-enabler/base
-  
-  # Instances after operators are ready
+  # Opérateurs (sync-wave: "0")
+  - ../../../components/operators
+
+  # Infrastructure de base (sync-wave: "1")
+  - ../../../components/instances/minio-instance/base
+  - ../../../components/instances/mysql-instance/base
+
   # Service Mesh géré automatiquement par RHOAI
+  # - ../../../components/instances/service-mesh-instance
+
+  # Composants OpenShift (sync-wave: "2")
   - ../../../components/instances/serverless-instance
-  - ../../../components/instances/pipelines-instance  # ✅ Réactivé pour la démo
-  - ../../../components/instances/rhoai-instance      # ✅ Inclut maintenant Model Registry consolidé
-  
-  # Demo instances (after infrastructure is ready)
-  - ../../../components/instances/triton-demo-instance/base  # ✅ Démo Triton intégrée
+  - ../../../components/instances/pipelines-instance
+
+  # RHOAI et ses composants (sync-wave: "3")
+  - ../../../components/instances/rhoai-instance
+
+  # Démo Triton (sync-wave: "4")
+  - ../../../components/instances/triton-demo-instance/base
 
 
 # Apply these patches to customize for dev environment

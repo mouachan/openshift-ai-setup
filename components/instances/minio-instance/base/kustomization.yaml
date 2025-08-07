@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: minio-instance
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+
+resources:
+- namespace.yaml
+- minio-deployment.yaml
+- minio-service.yaml
+- minio-pvc.yaml
+- minio-secret.yaml
+- minio-serviceaccount.yaml
+- minio-bucket-init.yaml 

@@ -5,10 +5,21 @@ metadata:
   namespace: rhoai-model-registries
   labels:
     app.kubernetes.io/name: model-registry
-    app.kubernetes.io/component: mysql-backend
+    app.kubernetes.io/component: model-registry
     app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    environment: development
 data:
-  database: "model_registry"
-  username: "registry"
-  host: "mysql.rhoai-model-registries.svc.cluster.local"
-  port: "3306"
+  # Configuration pour MySQL externe dans le namespace db-ai
+  DB_HOST: "mysql.db-ai.svc.cluster.local"
+  DB_PORT: "3306"
+  DB_NAME: "model_registry"
+  DB_USER: "model_registry"
+  DB_PASSWORD: "password"
+  
+  # Configuration pour MinIO externe dans le namespace minio
+  S3_ENDPOINT: "minio-api.minio.svc.cluster.local:9000"
+  S3_BUCKET: "model-registry-bucket"
+  S3_ACCESS_KEY: "minio"
+  S3_SECRET_KEY: "minio123"
+  S3_REGION: "us-east-1"

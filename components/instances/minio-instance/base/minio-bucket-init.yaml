@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-init
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    environment: development
+spec:
+  template:
+    spec:
+      serviceAccountName: minio-sa
+      containers:
+      - name: bucket-init
+        image: quay.io/minio/mc:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Attendre que MinIO soit prêt
+          until mc alias set myminio http://minio-api:9000 minio minio123; do
+            echo "Waiting for MinIO to be ready..."
+            sleep 5
+          done
+          
+          # Créer les buckets nécessaires
+          mc mb myminio/model-registry-bucket --ignore-existing
+          mc mb myminio/mlpipeline --ignore-existing
+          
+          echo "Buckets created successfully"
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: accesskey
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: minio-credentials
+              key: secretkey
+      restartPolicy: OnFailure 
