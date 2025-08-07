@@ -112,7 +112,7 @@ spec:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsUser: 1001
+          runAsUser: 1000910000
           seccompProfile:
             type: RuntimeDefault
         
@@ -192,6 +192,6 @@ spec:
       
       # Configuration de sécurité
       securityContext:
-        fsGroup: 0
+        fsGroup: 1000910000
         supplementalGroups:
-        - 0
+        - 1000910000

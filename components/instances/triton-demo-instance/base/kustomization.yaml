@@ -4,12 +4,13 @@ kind: Kustomization
 metadata:
   name: triton-demo-instance
   annotations:
-    argocd.argoproj.io/sync-wave: "4"  # Après RHOAI et pipelines
+    argocd.argoproj.io/sync-wave: "5"  # En dernier, après RHOAI et pipelines
 
 # Ressources de la démo Triton
 resources:
 - data-science-project/  # Projet Data Science avec workbench et pipelines
 - model-serving/         # Configuration du serving avec KServe
+- data-science-project/workbench-scc.yaml  # Configuration SCC pour le workbench
 
 # Labels communs pour tous les objets
 labels:

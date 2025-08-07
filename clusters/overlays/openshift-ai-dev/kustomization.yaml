@@ -14,24 +14,21 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 
 resources:
-  # Opérateurs (sync-wave: "0")
+  # Opérateurs (sync-wave: "0") - Doit être en premier
   - ../../../components/operators
 
-  # Infrastructure de base (sync-wave: "1")
+  # Infrastructure de base (sync-wave: "1") - MinIO et MySQL
   - ../../../components/instances/minio-instance/base
   - ../../../components/instances/mysql-instance/base
 
-  # Service Mesh géré automatiquement par RHOAI
-  # - ../../../components/instances/service-mesh-instance
-
-  # Composants OpenShift (sync-wave: "2")
+  # Composants OpenShift (sync-wave: "2") - Serverless et Pipelines
   - ../../../components/instances/serverless-instance
   - ../../../components/instances/pipelines-instance
 
-  # RHOAI et ses composants (sync-wave: "3")
+  # RHOAI et ses composants (sync-wave: "3") - OpenShift AI complet
   - ../../../components/instances/rhoai-instance/base
 
-  # Démo Triton (sync-wave: "4")
+  # Démo Triton (sync-wave: "5") - Doit être en dernier, après RHOAI
   - ../../../components/instances/triton-demo-instance/base
 
 
