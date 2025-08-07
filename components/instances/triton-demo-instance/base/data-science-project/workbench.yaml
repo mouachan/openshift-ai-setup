@@ -16,7 +16,7 @@ metadata:
     openshift.io/description: "Workbench Jupyter pour développement avec image standard data science"
     openshift.io/display-name: "Triton Demo - Data Science Workbench"
     notebooks.opendatahub.io/last-image-version-git-commit-selection: "latest"
-    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2025.1"
+    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2024.2"
     opendatahub.io/hardware-profile-namespace: ""
     notebooks.opendatahub.io/last-size-selection: "Small"
     opendatahub.io/username: "demo-user"
@@ -64,7 +64,7 @@ spec:
                 --ServerApp.quit_button=False
                 --ServerApp.tornado_settings={"user":"demo-user","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.local","hub_prefix":"/projects/triton-demo"}
             - name: JUPYTER_IMAGE
-              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
+              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2'
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: REQUESTS_CA_BUNDLE
@@ -117,7 +117,7 @@ spec:
               subPath: ca-bundle.crt
             - mountPath: /opt/app-root/pipeline-runtimes/
               name: runtime-images
-          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2'
           workingDir: /opt/app-root/src
         - resources:
             limits:
