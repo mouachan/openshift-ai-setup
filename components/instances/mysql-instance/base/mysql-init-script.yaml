@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: db-ai
+  labels:
+    app.kubernetes.io/name: mysql-init-script
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openshift-ai
+    app.kubernetes.io/managed-by: gitops
+    environment: development
+data:
+  init.sql: |
+    -- Création de l'utilisateur model_registry
+    CREATE USER IF NOT EXISTS 'model_registry'@'%' IDENTIFIED BY 'password';
+    
+    -- Attribution des privilèges sur la base de données
+    GRANT ALL PRIVILEGES ON model_registry.* TO 'model_registry'@'%';
+    
+    -- Application des privilèges
+    FLUSH PRIVILEGES; 

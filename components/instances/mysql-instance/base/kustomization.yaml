@@ -12,4 +12,5 @@ resources:
 - mysql-service.yaml
 - mysql-pvc.yaml
 - mysql-secret.yaml
-- mysql-user-init.yaml 
+- mysql-user-init.yaml
+- mysql-init-script.yaml 
