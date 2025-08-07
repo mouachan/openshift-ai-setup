@@ -9,5 +9,6 @@ metadata:
 
 resources:
   - subscription.yaml
+  - argocd-admin-rbac.yaml
 
 namespace: openshift-operators
