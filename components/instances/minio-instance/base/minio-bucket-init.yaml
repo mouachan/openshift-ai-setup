@@ -1,11 +1,12 @@
+# Job pour initialiser les buckets nécessaires dans MinIO
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: minio-bucket-init
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: storage
+    app.kubernetes.io/name: minio-bucket-init
+    app.kubernetes.io/component: bucket-init
     app.kubernetes.io/part-of: openshift-ai
     app.kubernetes.io/managed-by: gitops
     environment: development
@@ -19,6 +20,7 @@ spec:
         command:
         - /bin/bash
         - -c
+        args:
         - |
           # Attendre que MinIO soit prêt
           until mc alias set myminio http://minio-api:9000 minio minio123; do
@@ -30,7 +32,7 @@ spec:
           mc mb myminio/model-registry-bucket --ignore-existing
           mc mb myminio/mlpipeline --ignore-existing
           
-          echo "Buckets created successfully"
+          echo "✅ Buckets initialisés avec succès"
         env:
         - name: MINIO_ROOT_USER
           valueFrom:

@@ -66,6 +66,13 @@ spec:
       externalService:
         host: "minio-api.minio.svc.cluster.local"
         port: 9000
+      # Configuration S3 complète
+      s3:
+        endpoint: "minio-api.minio.svc.cluster.local:9000"
+        bucket: "mlpipeline"
+        region: "us-east-1"
+        useSSL: false
+        verifySSL: false
   
   # Configuration de la persistance des artefacts
   persistence:
