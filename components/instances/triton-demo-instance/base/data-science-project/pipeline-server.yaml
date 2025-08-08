@@ -15,96 +15,55 @@ metadata:
 spec:
   # Configuration du serveur de pipelines
   apiServer:
-    # Configuration des ressources
-    resources:
-      requests:
-        cpu: "200m"
-        memory: "512Mi"
-      limits:
-        cpu: "500m"
-        memory: "1Gi"
-    # Réplication pour la haute disponibilité
+    caBundleFileMountPath: ""
+    caBundleFileName: ""
     deploy: true
+    artifactSignedURLExpirySeconds: 60
     enableSamplePipeline: false
-    autoUpdatePipelineDefaultVersion: true
-    # Configuration de l'archive
-    archiveLogs: true
-    # Configuration de la collecte des métriques
-    collectMetrics: true
-    # Configuration des logs structurés
+    managedPipelines:
+      instructLab:
+        state: Removed
     enableOauth: true
-    stripEOF: true
-    terminateStatus: Cancelled
-    trackArtifacts: true
-    # Variables d'environnement
-    env:
-      DEFAULTPIPELINERUNNERSERVICEACCOUNT: "pipeline-runner"
+    cacheEnabled: true
+    pipelineStore: database
   
   # Configuration de la base de données
   database:
+    disableHealthCheck: false
     mariaDB:
+      deploy: true
       pipelineDBName: "mlpipeline"
-      pipelineDBUserName: "mlpipeline"
-      pipelineDBPasswordSecret:
-        secretName: "mlpipeline-db-credential"
-        secretKey: "password"
+      pvcSize: "10Gi"
+      username: "mlpipeline"
   
   # Configuration du stockage d'objets (MinIO externe)
   objectStorage:
-    minio:
-      deploy: false  # Utiliser le MinIO externe
-      image: quay.io/minio/minio:latest  # Requis même avec deploy: false
-      # Configuration S3 pour le MinIO externe
+    disableHealthCheck: false
+    enableExternalRoute: false
+    externalStorage:
+      basePath: ""
       bucket: "mlpipeline"
+      host: "minio-api.minio.svc.cluster.local:9000"
+      port: ""
+      region: "us-east-1"
       s3CredentialsSecret:
-        secretName: "mlpipeline-minio-artifact"
         accessKey: "accesskey"
         secretKey: "secretkey"
-      # Configuration de l'endpoint externe
-      externalEndpoint: "minio-api.minio.svc.cluster.local:9000"
-      # Configuration du service externe
-      externalService:
-        host: "minio-api.minio.svc.cluster.local"
-        port: 9000
-      # Configuration S3 complète
-      s3:
-        endpoint: "minio-api.minio.svc.cluster.local:9000"
-        bucket: "mlpipeline"
-        region: "us-east-1"
-        useSSL: false
-        verifySSL: false
+        secretName: "mlpipeline-minio-artifact"
+      scheme: "http"
   
-  # Configuration de la persistance des artefacts
-  persistence:
-    enable: true
-    storageClass: "gp3-csi"
-    size: "10Gi"
+  # Configuration du persistence agent
+  persistenceAgent:
+    deploy: true
+    numWorkers: 2
   
   # Configuration du planificateur de workflows
   scheduledWorkflow:
-    deploy: true
-    # Configuration des ressources
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "256Mi"
-      limits:
-        cpu: "200m"
-        memory: "512Mi"
-    # Configuration du cron
     cronScheduleTimezone: "UTC"
-  
-  # Configuration de l'interface utilisateur ML Pipeline
-  mlpipelineUI:
     deploy: true
-    # Configuration des ressources
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "256Mi"
-      limits:
-        cpu: "200m"
-        memory: "512Mi"
-    # Configuration du serveur web
-    configMap: "ml-pipeline-ui-configmap"
-    image: "registry.redhat.io/ubi8/ubi:latest"
+  
+  # Configuration TLS
+  podToPodTLS: true
+  
+  # Version DSP
+  dspVersion: "v2"
