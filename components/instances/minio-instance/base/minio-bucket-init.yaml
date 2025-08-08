@@ -11,9 +11,6 @@ metadata:
     app.kubernetes.io/managed-by: gitops
     environment: development
 spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: minio-bucket-init
   template:
     metadata:
       labels:
