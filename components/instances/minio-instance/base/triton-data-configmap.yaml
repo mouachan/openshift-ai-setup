@@ -30,7 +30,7 @@ data:
         random_state=int(os.getenv('RANDOM_STATE', 42))
     )
 
-    # Sauvegarder les données (sera uploadé vers S3/data/iris-data/)
+    # Sauvegarder les données (sera uploadé vers S3/triton-data/iris-data/)
     with open('X_train.pkl', 'wb') as f:
         pickle.dump(X_train, f)
     with open('X_test.pkl', 'wb') as f:
@@ -43,7 +43,7 @@ data:
     print(f"✅ Données préparées: {X_train.shape[0]} train, {X_test.shape[0]} test")
     print(f"📊 Features: {X_train.shape[1]}")
     print(f"🎯 Classes: {len(np.unique(y))}")
-    print(f"📁 S3 Path: data/{S3_DATA_PATH}/")
+    print(f"📁 S3 Path: triton-data/{S3_DATA_PATH}/")
 
   # Script d'entraînement du modèle
   model_training.py: |
@@ -71,13 +71,13 @@ data:
     )
     model.fit(X_train, y_train)
 
-    # Sauvegarder le modèle (sera uploadé vers S3/models/iris-models/)
+    # Sauvegarder le modèle (sera uploadé vers Model Registry via "Triton Demo - S3 Connection")
     with open('iris_model.pkl', 'wb') as f:
         pickle.dump(model, f)
 
     print("✅ Modèle entraîné et sauvegardé")
     print(f"🌳 Nombre d'arbres: {model.n_estimators}")
-    print(f"📁 S3 Path: models/{S3_MODELS_PATH}/")
+    print(f"📁 S3 Path: [Model Registry]/{S3_MODELS_PATH}/")
 
   # Script d'évaluation du modèle
   model_registry.py: |
@@ -105,7 +105,7 @@ data:
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
 
-    # Sauvegarder les métriques (sera uploadé vers S3/models/iris-models/)
+    # Sauvegarder les métriques (sera uploadé vers Model Registry via "Triton Demo - S3 Connection")
     metrics = {
         'accuracy': accuracy,
         'classification_report': classification_report(y_test, y_pred, output_dict=True)
@@ -120,52 +120,44 @@ data:
     print(f"✅ Métriques sauvegardées - Accuracy: {accuracy:.4f}")
     print("📋 Rapport de classification:")
     print(classification_report(y_test, y_pred))
-    print(f"📁 S3 Path: models/{S3_MODELS_PATH}/")
+    print(f"📁 S3 Path: [Model Registry]/{S3_MODELS_PATH}/")
 
-  # Configuration de la data connection
-  s3_connection.json: |
-    {
-      "metadata": {
-        "name": "s3-connection",
-        "display_name": "S3 Connection",
-        "description": "Connection S3 générique pour les données et modèles"
-      },
-      "connection": {
-        "type": "s3",
-        "endpoint": "http://minio-api.minio.svc:9000",
-        "access_key": "minioadmin",
-        "secret_key": "minioadmin",
-        "buckets": ["data", "models"]
-      }
-    }
+  # Configuration des data connections
+  data_connections.md: |
+    # Configuration des Data Connections
 
-  # Fichier README pour les buckets
-  README.md: |
-    # Buckets S3 génériques
+    ## Data Connection pour les données:
+    - **Nom**: `triton-data-connection`
+    - **Type**: `S3`
+    - **Endpoint**: `http://minio-api.minio.svc:9000`
+    - **Bucket**: `triton-data`
+    - **Usage**: Stockage des données d'entraînement et de test
 
-    ## Buckets créés:
-    - **data**: Stockage générique des données d'entraînement et de test
-    - **models**: Stockage générique des modèles entraînés et métriques
+    ## Data Connection pour les modèles (existante):
+    - **Nom**: `Triton Demo - S3 Connection`
+    - **Type**: `S3`
+    - **Usage**: Model Registry - stockage des modèles entraînés
 
     ## Structure des données pour Iris:
     ```
-    data/
+    triton-data/
     └── iris-data/
         ├── X_train.pkl
         ├── X_test.pkl
         ├── y_train.pkl
         └── y_test.pkl
 
-    models/
+    [Model Registry Bucket]/
     └── iris-models/
         ├── iris_model.pkl
         ├── metrics.pkl
         └── accuracy.txt
     ```
 
-    ## Utilisation générique:
-    - Chaque projet peut avoir son propre sous-dossier
-    - Ex: `data/iris-data/`, `data/mnist-data/`, `models/iris-models/`, etc.
+    ## Configuration dans Elyra:
+    1. **Nœud data_preprocessing**: Utilise `triton-data-connection`
+    2. **Nœud model_training**: Utilise `triton-data-connection` pour les données
+    3. **Nœud model_registry**: Utilise `Triton Demo - S3 Connection` pour les modèles
 
     ## Utilisation dans Elyra:
     1. Configurez la data connection avec les credentials S3

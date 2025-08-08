@@ -28,25 +28,21 @@ spec:
           # Configuration MinIO
           mc alias set myminio http://minio-api:9000 minioadmin minioadmin
           
-          # Créer les buckets génériques
-          echo "📦 Création du bucket data..."
-          mc mb myminio/data --ignore-existing
-          
-          echo "📦 Création du bucket models..."
-          mc mb myminio/models --ignore-existing
+          # Créer le bucket data séparé
+          echo "📦 Création du bucket triton-data..."
+          mc mb myminio/triton-data --ignore-existing
           
           # Configurer les politiques d'accès
           echo "🔐 Configuration des politiques d'accès..."
-          mc policy set download myminio/data
-          mc policy set download myminio/models
+          mc policy set download myminio/triton-data
           
           # Créer la structure de dossiers pour Iris
           echo "📁 Création de la structure de dossiers..."
           echo "Iris dataset structure" > iris-data-info.txt
-          echo "Iris model structure" > iris-models-info.txt
           
-          mc cp iris-data-info.txt myminio/data/iris-data/
-          mc cp iris-models-info.txt myminio/models/iris-models/
+          mc cp iris-data-info.txt myminio/triton-data/iris-data/
+          
+          echo "ℹ️ Note: Le bucket models utilise la data connection 'Triton Demo - S3 Connection' existante"
           
           # Lister les buckets
           echo "📋 Buckets créés:"
