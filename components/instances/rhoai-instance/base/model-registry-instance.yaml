@@ -13,10 +13,10 @@ metadata:
     environment: development
 spec:
   # Configuration de la base de données MySQL externe
-  database:
+  mysql:
     host: mysql.db-ai.svc.cluster.local
     port: 3306
-    name: model_registry
+    database: model_registry
     user: model_registry
     passwordSecret:
       name: model-registry-db-secret
