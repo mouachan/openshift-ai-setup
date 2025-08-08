@@ -36,6 +36,13 @@ spec:
             secretKeyRef:
               name: mysql-credentials
               key: mysql-database
+        - name: MYSQL_DEFAULT_AUTHENTICATION_PLUGIN
+          value: "mysql_native_password"
+        command:
+        - mysqld
+        - --default-authentication-plugin=mysql_native_password
+        - --character-set-server=utf8mb4
+        - --collation-server=utf8mb4_unicode_ci
         volumeMounts:
         - name: mysql-storage
           mountPath: /var/lib/mysql
