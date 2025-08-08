@@ -34,12 +34,36 @@ spec:
             - |
               echo "🚀 Initialisation du workbench..."
               cd /opt/app-root/src
+              
+              # Cloner le repository
               git clone -b main https://github.com/mouachan/openshift-ai-setup.git /tmp/openshift-ai-setup
+              
+              # Copier la démo Triton
               cp -r /tmp/openshift-ai-setup/demos/triton-example ./triton-example
+              
+              # Créer les dossiers nécessaires
+              mkdir -p ./triton-example/data
+              mkdir -p ./triton-example/models
+              mkdir -p ./triton-example/notebooks
+              
+              # Copier les modèles pré-entraînés s'ils existent
+              if [ -d "/tmp/openshift-ai-setup/demos/triton-example/models" ]; then
+                cp -r /tmp/openshift-ai-setup/demos/triton-example/models/* ./triton-example/models/ 2>/dev/null || true
+              fi
+              
+              # Créer un fichier de test pour S3
+              echo "Test S3 connection" > ./triton-example/data/test_s3.txt
+              echo "Dataset Iris sera chargé depuis scikit-learn" > ./triton-example/data/README.txt
+              
+              # Nettoyer
               rm -rf /tmp/openshift-ai-setup
-              mkdir -p ./data
-              echo "Test S3 connection" > ./data/test_s3.txt
-              echo "✅ Workbench initialisé!"
+              
+              # Permissions
+              chmod -R 755 ./triton-example
+              
+              echo "✅ Workbench initialisé avec succès!"
+              echo "📁 Contenu du répertoire:"
+              ls -la ./triton-example/
           volumeMounts:
             - mountPath: /opt/app-root/src/
               name: triton-workbench-storage
@@ -173,9 +197,17 @@ spec:
               minio>=7.1.0 \
               pyyaml>=6.0 \
               click>=8.1.0 \
-              git
+              kfp>=2.0.0 \
+              kfp-kubernetes>=1.0.0 \
+              model-registry>=0.1.0
             
             echo "✅ Packages installés avec succès"
+            
+            # Configuration Elyra sans interaction
+            echo "🔧 Configuration Elyra..."
+            mkdir -p /opt/app-root/src/.jupyter
+            echo "c.ElyraApp.enable_pipeline_editing = True" > /opt/app-root/src/.jupyter/jupyter_elyra_config.py
+            echo "c.ElyraApp.runtime_env = 'kubeflow_pipelines'" >> /opt/app-root/src/.jupyter/jupyter_elyra_config.py
             
             # Démarrage de Jupyter
             start-notebook.sh ${NOTEBOOK_ARGS}
