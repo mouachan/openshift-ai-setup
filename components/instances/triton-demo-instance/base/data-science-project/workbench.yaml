@@ -222,8 +222,8 @@ spec:
             # Configurer le runtime Data Science Pipelines
             echo "🔧 Configuration du runtime Data Science Pipelines..."
             if [ -f "/opt/app-root/elyra-config/runtime-config.json" ]; then
-              cp /opt/app-root/elyra-config/runtime-config.json /opt/app-root/src/.local/share/jupyter/metadata/runtimes/kfp/Data\ Science\ Pipelines.json
-              echo "✅ Runtime Data Science Pipelines configuré"
+              cp /opt/app-root/elyra-config/runtime-config.json /opt/app-root/src/.local/share/jupyter/metadata/runtimes/kfp/Argo.json
+              echo "✅ Runtime Argo configuré"
             fi
             
             # Exécuter le script d'initialisation si disponible

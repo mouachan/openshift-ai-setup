@@ -12,7 +12,7 @@ data:
     {
       "schema_name": "kfp",
       "metadata": {
-        "display_name": "Data Science Pipelines",
+        "display_name": "Argo",
         "description": "Runtime pour les pipelines de data science sur OpenShift AI",
         "tags": ["kubeflow", "pipelines", "openshift"]
       },
@@ -51,7 +51,7 @@ data:
         runtime_config = {
             "schema_name": "kfp",
             "metadata": {
-                "display_name": "Data Science Pipelines",
+                "display_name": "Argo",
                 "description": "Runtime pour les pipelines de data science sur OpenShift AI",
                 "tags": ["kubeflow", "pipelines", "openshift"]
             },
@@ -69,7 +69,7 @@ data:
         }
         
         # Sauvegarder la configuration
-        runtime_file = elyra_config_dir / "kfp" / "Data Science Pipelines.json"
+        runtime_file = elyra_config_dir / "kfp" / "Argo.json"
         runtime_file.parent.mkdir(parents=True, exist_ok=True)
         
         with open(runtime_file, 'w') as f:
@@ -78,6 +78,7 @@ data:
         print(f"✅ Runtime configuré: {runtime_file}")
         print("🔗 Endpoint: https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com")
         print("📦 Bucket S3: triton-data")
+        print("🏷️ Nom du runtime: Argo")
         
         # Vérifier la configuration
         try:
@@ -103,7 +104,7 @@ data:
     # Configuration des runtimes
     c.ElyraApp.runtime_configs = {
         'kfp': {
-            'display_name': 'Data Science Pipelines',
+            'display_name': 'Argo',
             'api_endpoint': 'https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com',
             'user_namespace': 'triton-demo',
             'engine': 'Argo',
