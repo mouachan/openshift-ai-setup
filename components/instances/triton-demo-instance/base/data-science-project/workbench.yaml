@@ -76,26 +76,26 @@ spec:
               cpu: '3'
               memory: 24Gi
           readinessProbe:
-            failureThreshold: 3
+            failureThreshold: 10
             httpGet:
               path: /notebook/triton-demo/triton-workbench/api
               port: notebook-port
               scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            initialDelaySeconds: 120
+            periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 1
+            timeoutSeconds: 5
           name: triton-workbench
           livenessProbe:
-            failureThreshold: 3
+            failureThreshold: 5
             httpGet:
               path: /notebook/triton-demo/triton-workbench/api
               port: notebook-port
               scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            initialDelaySeconds: 180
+            periodSeconds: 15
             successThreshold: 1
-            timeoutSeconds: 1
+            timeoutSeconds: 5
           env:
             - name: NOTEBOOK_ARGS
               value: |-
