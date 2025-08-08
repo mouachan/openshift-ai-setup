@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: triton-data-configmap
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: triton-data-configmap
+    app.kubernetes.io/part-of: triton-demo
+data:
+  # Script de préparation des données
+  data_preprocessing.py: |
+    import os
+    import pickle
+    import numpy as np
+    from sklearn.datasets import load_iris
+    from sklearn.model_selection import train_test_split
+
+    print("🔧 Préparation des données Iris")
+    print("=" * 40)
+
+    # Configuration des chemins S3
+    PROJECT_NAME = os.getenv('PROJECT_NAME', 'iris')
+    S3_DATA_PATH = f"{PROJECT_NAME}-data"
+
+    # Charger et préparer les données
+    iris = load_iris()
+    X, y = iris.data, iris.target
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=float(os.getenv('TEST_SIZE', 0.2)), 
+        random_state=int(os.getenv('RANDOM_STATE', 42))
+    )
+
+    # Sauvegarder les données (sera uploadé vers S3/data/iris-data/)
+    with open('X_train.pkl', 'wb') as f:
+        pickle.dump(X_train, f)
+    with open('X_test.pkl', 'wb') as f:
+        pickle.dump(X_test, f)
+    with open('y_train.pkl', 'wb') as f:
+        pickle.dump(y_train, f)
+    with open('y_test.pkl', 'wb') as f:
+        pickle.dump(y_test, f)
+
+    print(f"✅ Données préparées: {X_train.shape[0]} train, {X_test.shape[0]} test")
+    print(f"📊 Features: {X_train.shape[1]}")
+    print(f"🎯 Classes: {len(np.unique(y))}")
+    print(f"📁 S3 Path: data/{S3_DATA_PATH}/")
+
+  # Script d'entraînement du modèle
+  model_training.py: |
+    import os
+    import pickle
+    from sklearn.ensemble import RandomForestClassifier
+
+    print("🤖 Entraînement du modèle Random Forest")
+    print("=" * 40)
+
+    # Configuration des chemins S3
+    PROJECT_NAME = os.getenv('PROJECT_NAME', 'iris')
+    S3_MODELS_PATH = f"{PROJECT_NAME}-models"
+
+    # Charger les données
+    with open('X_train.pkl', 'rb') as f:
+        X_train = pickle.load(f)
+    with open('y_train.pkl', 'rb') as f:
+        y_train = pickle.load(f)
+
+    # Entraîner le modèle
+    model = RandomForestClassifier(
+        n_estimators=int(os.getenv('N_ESTIMATORS', 100)),
+        random_state=int(os.getenv('RANDOM_STATE', 42))
+    )
+    model.fit(X_train, y_train)
+
+    # Sauvegarder le modèle (sera uploadé vers S3/models/iris-models/)
+    with open('iris_model.pkl', 'wb') as f:
+        pickle.dump(model, f)
+
+    print("✅ Modèle entraîné et sauvegardé")
+    print(f"🌳 Nombre d'arbres: {model.n_estimators}")
+    print(f"📁 S3 Path: models/{S3_MODELS_PATH}/")
+
+  # Script d'évaluation du modèle
+  model_registry.py: |
+    import os
+    import pickle
+    import json
+    from sklearn.metrics import accuracy_score, classification_report
+
+    print("📊 Évaluation du modèle")
+    print("=" * 30)
+
+    # Configuration des chemins S3
+    PROJECT_NAME = os.getenv('PROJECT_NAME', 'iris')
+    S3_MODELS_PATH = f"{PROJECT_NAME}-models"
+
+    # Charger le modèle et les données
+    with open('iris_model.pkl', 'rb') as f:
+        model = pickle.load(f)
+    with open('X_test.pkl', 'rb') as f:
+        X_test = pickle.load(f)
+    with open('y_test.pkl', 'rb') as f:
+        y_test = pickle.load(f)
+
+    # Évaluation
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+
+    # Sauvegarder les métriques (sera uploadé vers S3/models/iris-models/)
+    metrics = {
+        'accuracy': accuracy,
+        'classification_report': classification_report(y_test, y_pred, output_dict=True)
+    }
+
+    with open('metrics.pkl', 'wb') as f:
+        pickle.dump(metrics, f)
+
+    with open('accuracy.txt', 'w') as f:
+        f.write(f"Accuracy: {accuracy:.4f}")
+
+    print(f"✅ Métriques sauvegardées - Accuracy: {accuracy:.4f}")
+    print("📋 Rapport de classification:")
+    print(classification_report(y_test, y_pred))
+    print(f"📁 S3 Path: models/{S3_MODELS_PATH}/")
+
+  # Configuration de la data connection
+  s3_connection.json: |
+    {
+      "metadata": {
+        "name": "s3-connection",
+        "display_name": "S3 Connection",
+        "description": "Connection S3 générique pour les données et modèles"
+      },
+      "connection": {
+        "type": "s3",
+        "endpoint": "http://minio-api.minio.svc:9000",
+        "access_key": "minioadmin",
+        "secret_key": "minioadmin",
+        "buckets": ["data", "models"]
+      }
+    }
+
+  # Fichier README pour les buckets
+  README.md: |
+    # Buckets S3 génériques
+
+    ## Buckets créés:
+    - **data**: Stockage générique des données d'entraînement et de test
+    - **models**: Stockage générique des modèles entraînés et métriques
+
+    ## Structure des données pour Iris:
+    ```
+    data/
+    └── iris-data/
+        ├── X_train.pkl
+        ├── X_test.pkl
+        ├── y_train.pkl
+        └── y_test.pkl
+
+    models/
+    └── iris-models/
+        ├── iris_model.pkl
+        ├── metrics.pkl
+        └── accuracy.txt
+    ```
+
+    ## Utilisation générique:
+    - Chaque projet peut avoir son propre sous-dossier
+    - Ex: `data/iris-data/`, `data/mnist-data/`, `models/iris-models/`, etc.
+
+    ## Utilisation dans Elyra:
+    1. Configurez la data connection avec les credentials S3
+    2. Utilisez les buckets dans vos pipelines
+    3. Les fichiers seront automatiquement uploadés/downloadés 

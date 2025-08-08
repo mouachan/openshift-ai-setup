@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-init-triton
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio-bucket-init-triton
+    app.kubernetes.io/part-of: triton-demo
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio-bucket-init-triton
+        app.kubernetes.io/part-of: triton-demo
+    spec:
+      serviceAccountName: minio-admin
+      containers:
+      - name: bucket-init
+        image: minio/mc:latest
+        command:
+        - /bin/bash
+        - -c
+        args:
+        - |
+          echo "🚀 Initialisation des buckets S3 pour Triton Demo"
+          echo "================================================"
+          
+          # Configuration MinIO
+          mc alias set myminio http://minio-api:9000 minioadmin minioadmin
+          
+          # Créer les buckets génériques
+          echo "📦 Création du bucket data..."
+          mc mb myminio/data --ignore-existing
+          
+          echo "📦 Création du bucket models..."
+          mc mb myminio/models --ignore-existing
+          
+          # Configurer les politiques d'accès
+          echo "🔐 Configuration des politiques d'accès..."
+          mc policy set download myminio/data
+          mc policy set download myminio/models
+          
+          # Créer la structure de dossiers pour Iris
+          echo "📁 Création de la structure de dossiers..."
+          echo "Iris dataset structure" > iris-data-info.txt
+          echo "Iris model structure" > iris-models-info.txt
+          
+          mc cp iris-data-info.txt myminio/data/iris-data/
+          mc cp iris-models-info.txt myminio/models/iris-models/
+          
+          # Lister les buckets
+          echo "📋 Buckets créés:"
+          mc ls myminio/
+          
+          echo "✅ Initialisation terminée avec succès!"
+        env:
+        - name: MINIO_ENDPOINT
+          value: "http://minio-api:9000"
+        - name: MINIO_ACCESS_KEY
+          value: "minioadmin"
+        - name: MINIO_SECRET_KEY
+          value: "minioadmin"
+      restartPolicy: OnFailure
+      backoffLimit: 3 

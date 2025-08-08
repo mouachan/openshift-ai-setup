@@ -13,4 +13,6 @@ resources:
 - minio-pvc.yaml
 - minio-secret.yaml
 - minio-serviceaccount.yaml
-- minio-bucket-init.yaml 
+- minio-bucket-init.yaml
+- minio-bucket-init-triton.yaml
+- triton-data-configmap.yaml 
