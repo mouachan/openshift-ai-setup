@@ -1,7 +1,7 @@
 apiVersion: v1
-kind: Secret
+kind: Service
 metadata:
-  name: mysql-credentials
+  name: mysql
   namespace: db-ai
   labels:
     app.kubernetes.io/name: mysql
@@ -9,9 +9,12 @@ metadata:
     app.kubernetes.io/part-of: openshift-ai
     app.kubernetes.io/managed-by: gitops
     environment: development
-type: Opaque
-data:
-  mysql-root-password: cGFzc3dvcmQ=  # password
-  mysql-user: cm9vdA==  # root
-  mysql-password: cGFzc3dvcmQ=  # password
-  mysql-database: bW9kZWxfcmVnaXN0cnk=  # model_registry 
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+    protocol: TCP
+    name: mysql
+  selector:
+    app: mysql
+  type: ClusterIP 

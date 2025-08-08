@@ -2,7 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - rhoai.yaml
+- mysql-namespace.yaml
+- mysql-deployment.yaml
+- mysql-service.yaml
+- mysql-pvc.yaml
+- mysql-secret.yaml
 - model-registry-instance.yaml
-- model-registry-secrets.yaml
-- model-registry-rbac.yaml
-namespace: redhat-ods-operator
+- model-registry-secret.yaml

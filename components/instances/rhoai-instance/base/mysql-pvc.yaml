@@ -11,7 +11,7 @@ metadata:
     environment: development
 spec:
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi

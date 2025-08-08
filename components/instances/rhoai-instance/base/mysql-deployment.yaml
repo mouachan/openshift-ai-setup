@@ -11,9 +11,12 @@ metadata:
     environment: development
 spec:
   replicas: 1
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app: mysql
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -21,11 +24,22 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: mysql:8.0
+        image: mysql:8.3.0
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3306
           name: mysql
         env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-credentials
+              key: mysql-password
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -36,18 +50,13 @@ spec:
             secretKeyRef:
               name: mysql-credentials
               key: mysql-database
-        - name: MYSQL_DEFAULT_AUTHENTICATION_PLUGIN
-          value: "mysql_native_password"
-        command:
-        - mysqld
+        args:
+        - --datadir
+        - /var/lib/mysql/datadir
         - --default-authentication-plugin=mysql_native_password
-        - --character-set-server=utf8mb4
-        - --collation-server=utf8mb4_unicode_ci
         volumeMounts:
         - name: mysql-storage
           mountPath: /var/lib/mysql
-        - name: mysql-init-script
-          mountPath: /docker-entrypoint-initdb.d
         resources:
           requests:
             memory: "512Mi"
@@ -56,23 +65,27 @@ spec:
             memory: "1Gi"
             cpu: "500m"
         livenessProbe:
-          tcpSocket:
-            port: 3306
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - mysqladmin -u$MYSQL_USER -p$MYSQL_ROOT_PASSWORD ping
           initialDelaySeconds: 30
           periodSeconds: 10
+          timeoutSeconds: 5
         readinessProbe:
           exec:
             command:
-            - mysqladmin
-            - ping
-            - -h
-            - localhost
-          initialDelaySeconds: 5
-          periodSeconds: 2
+            - /bin/bash
+            - -c
+            - mysql -D $MYSQL_DATABASE -u$MYSQL_USER -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 5
+        securityContext:
+          capabilities: {}
+          privileged: false
       volumes:
       - name: mysql-storage
         persistentVolumeClaim:
-          claimName: mysql-pvc
-      - name: mysql-init-script
-        configMap:
-          name: mysql-init-script 
+          claimName: mysql-pvc 

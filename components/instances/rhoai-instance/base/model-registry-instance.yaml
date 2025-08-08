@@ -1,60 +1,30 @@
-# Model Registry Instance pour OpenShift AI 2.22
-# Utilise MySQL et MinIO externes
-apiVersion: modelregistry.opendatahub.io/v1alpha1
+apiVersion: modelregistry.opendatahub.io/v1beta1
 kind: ModelRegistry
 metadata:
-  name: triton-demo-registry
+  name: modelregistry
   namespace: rhoai-model-registries
   labels:
-    app.kubernetes.io/name: triton-demo-registry
+    app.kubernetes.io/name: model-registry
     app.kubernetes.io/component: model-registry
     app.kubernetes.io/part-of: openshift-ai
     app.kubernetes.io/managed-by: gitops
     environment: development
 spec:
-  # Configuration de la base de données MySQL externe
+  grpc:
+    port: 9090
   mysql:
-    host: mysql.db-ai.svc.cluster.local
-    port: 3306
     database: model_registry
-    user: model_registry
+    host: mysql.db-ai.svc.cluster.local
     passwordSecret:
+      key: database-password
       name: model-registry-db-secret
-      key: password
-  
-  # Configuration du stockage S3/MinIO externe
-  storage:
-    type: s3
-    s3:
-      endpoint: minio-api.minio.svc.cluster.local:9000
-      bucket: model-registry-bucket
-      accessKeySecret:
-        name: model-registry-s3-secret
-        key: access-key
-      secretKeySecret:
-        name: model-registry-s3-secret
-        key: secret-key
-      useSSL: false
-      verifySSL: false
-  
-  # Configuration du serveur
-  server:
-    replicas: 1
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "256Mi"
-      limits:
-        cpu: "500m"
-        memory: "1Gi"
-  
-  # Configuration de l'API
-  api:
-    replicas: 1
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "256Mi"
-      limits:
-        cpu: "500m"
-        memory: "1Gi" 
+    port: 3306
+    skipDBCreation: false
+    username: mlmduser
+  oauthProxy:
+    port: 8443
+    routePort: 443
+    serviceRoute: enabled
+  rest:
+    port: 8080
+    serviceRoute: disabled
