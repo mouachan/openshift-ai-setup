@@ -1,183 +1,188 @@
-# Triton Inference Server Demo
+# 🌸 Triton Demo - Classification Iris
 
-Cette démo illustre un workflow complet d'entraînement et de déploiement d'un modèle avec NVIDIA Triton Inference Server dans OpenShift AI.
+Ce projet démontre l'utilisation de NVIDIA Triton Inference Server pour déployer et servir un modèle de classification Iris dans un environnement OpenShift AI.
 
-## Architecture
+## 📋 Prérequis
 
+- OpenShift AI (RHODS) 2.22+
+- ArgoCD configuré
+- Model Registry opérationnel
+- MinIO/S3 accessible
+- MySQL pour le Model Registry
+
+## 🚀 Déploiement
+
+### 1. Déploiement via GitOps
+
+Le projet est configuré pour être déployé automatiquement via ArgoCD :
+
+```bash
+# Vérifier que ArgoCD est synchronisé
+oc get applications -n openshift-gitops
+
+# Forcer la synchronisation si nécessaire
+oc patch application openshift-ai-complete -n openshift-gitops --type='merge' -p='{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌──────────────────┐
-│   Data Science  │───▶│  Elyra Pipeline  │───▶│ Model Registry  │───▶│ Triton Serving  │
-│    Workbench    │    │   (Kubeflow)     │    │   (MySQL+S3)    │    │   (KServe)       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘    └──────────────────┘
+
+### 2. Composants déployés
+
+- **MySQL Database** : `mysql.db-ai.svc.cluster.local:3306`
+- **Model Registry** : `modelregistry` dans le namespace `rhoai-model-registries`
+- **MinIO Storage** : `minio.db-ai.svc.cluster.local:9000`
+- **Jupyter Workbench** : `triton-workbench` dans le namespace `triton-demo`
+- **Triton Inference Server** : Pour servir les modèles
+
+## 📊 Utilisation du Notebook
+
+### 1. Accès au Workbench
+
+1. Connectez-vous à OpenShift AI Dashboard
+2. Allez dans le projet `triton-demo`
+3. Lancez le workbench `triton-workbench`
+4. Ouvrez le notebook `demos/triton-example/notebooks/iris_classification_notebook.ipynb`
+
+### 2. Configuration automatique
+
+Le workbench est configuré avec :
+- **Image** : `s2i-generic-data-science-notebook:2025.1`
+- **Variables d'environnement** :
+  - `MODEL_REGISTRY_URL` : URL du Model Registry
+  - `AWS_S3_ENDPOINT` : Endpoint MinIO
+  - `AWS_S3_BUCKET` : Bucket pour les modèles
+  - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` : Credentials S3
+
+### 3. Test local
+
+Vous pouvez tester le notebook localement :
+
+```bash
+cd demos/triton-example
+python3 test_notebook.py
 ```
 
-## Pipeline Kubeflow (3 étapes)
+## 🔧 Configuration
 
-1. **Data Transformation** (`data_preprocessing.py`)
-   - Chargement et nettoyage des données
-   - Feature engineering
-   - Division train/test
+### Variables d'environnement
 
-2. **Model Training** (`model_training.py`) 
-   - Entraînement d'un modèle simple (scikit-learn)
-   - Validation du modèle
-   - Export au format TensorFlow SavedModel pour Triton
+Le workbench utilise les variables suivantes :
 
-3. **Model Registry** (`model_registry.py`)
-   - Push du modèle vers le Model Registry
-   - Métadonnées et versioning
-   - Intégration avec MinIO S3
+```yaml
+# Model Registry
+MODEL_REGISTRY_URL: "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
+MODEL_REGISTRY_DATABASE_URL: "mysql://mlmduser:TheBlurstOfTimes@mysql.db-ai.svc.cluster.local:3306/model_registry"
 
-## Déploiement
+# S3/MinIO
+AWS_ACCESS_KEY_ID: "accesskey"
+AWS_SECRET_ACCESS_KEY: "secretkey"
+AWS_S3_ENDPOINT: "minio.db-ai.svc.cluster.local:9000"
+AWS_S3_BUCKET: "model-registry"
+AWS_S3_FORCE_PATH_STYLE: "true"
+```
 
-- **GitOps** : Déploiement automatique via ArgoCD
-- **KServe** : Single Model Serving avec Triton runtime
-- **Inference** : Script HTTP pour tester l'inférence
+### Secrets
 
-## Structure
+Le workbench utilise le secret `triton-demo-s3-connection` pour les credentials S3.
+
+## 📁 Structure du projet
 
 ```
 demos/triton-example/
-├── README.md
-├── pipelines/
-│   ├── iris_classification_pipeline.py    # Pipeline Elyra/Kubeflow
-│   ├── data_preprocessing.py              # Étape 1: Transformation
-│   ├── model_training.py                  # Étape 2: Entraînement  
-│   └── model_registry.py                  # Étape 3: Registry
 ├── notebooks/
-│   └── iris_classification_notebook.ipynb # Notebook de développement
-├── models/
-│   └── iris_model/                        # Modèle exporté pour Triton
-└── scripts/
-    └── test_inference.py                  # Test d'inférence HTTP
+│   └── iris_classification_notebook.ipynb  # Notebook principal
+├── pipelines/
+│   ├── model_registry.py                   # Script pour Model Registry
+│   ├── model_training.py                   # Script d'entraînement
+│   └── ...
+├── models/                                 # Modèles entraînés
+├── data/                                   # Données
+├── test_notebook.py                        # Script de test local
+└── README.md                               # Ce fichier
 ```
 
-> **Note** : Le répertoire `deployment/` a été supprimé car le déploiement se fait maintenant via le GitOps intégré.
-```
+## 🎯 Fonctionnalités
 
-## � Exécution de la démo
+### 1. Entraînement du modèle
+- Chargement du dataset Iris
+- Entraînement Random Forest
+- Évaluation des performances
+- Sauvegarde du modèle
 
-### Option 1: Pipeline automatisé (Kubeflow)
+### 2. Conversion ONNX
+- Conversion du modèle scikit-learn vers ONNX
+- Validation du modèle ONNX
+- Test d'inférence
+
+### 3. Model Registry
+- Enregistrement du modèle
+- Upload vers S3/MinIO
+- Métadonnées complètes
+
+### 4. Triton Inference
+- Déploiement sur Triton
+- Test d'inférence via API REST
+- Monitoring des performances
+
+## 🔍 Dépannage
+
+### Problèmes courants
+
+1. **Workbench ne démarre pas**
+   - Vérifiez les ressources CPU/Memory
+   - Vérifiez l'image Docker
+   - Vérifiez les secrets S3
+
+2. **Erreur de connexion S3**
+   - Vérifiez les credentials dans le secret
+   - Vérifiez l'endpoint MinIO
+   - Vérifiez la connectivité réseau
+
+3. **Erreur Model Registry**
+   - Vérifiez l'URL du Model Registry
+   - Vérifiez la base de données MySQL
+   - Vérifiez les permissions
+
+### Logs utiles
+
 ```bash
-# 1. Lancer le pipeline Kubeflow complet
-python pipelines/iris_classification_pipeline.py
+# Logs du workbench
+oc logs -f deployment/triton-workbench -n triton-demo
 
-# 2. Surveiller l'exécution dans l'interface Kubeflow
-# URL: https://your-cluster/pipelines
+# Logs du Model Registry
+oc logs -f deployment/modelregistry -n rhoai-model-registries
+
+# Logs MySQL
+oc logs -f deployment/mysql -n db-ai
 ```
 
-### Option 2: Notebook interactif (Workbench)
-```bash
-# 1. Accéder au workbench via OpenShift AI Dashboard
-# URL: https://rhods-dashboard-redhat-ods-applications.apps.cluster.local/projects/triton-demo
+## 📈 Monitoring
 
-# 2. Le workbench clone automatiquement la démo Triton depuis GitHub
-# 3. Ouvrir triton-demo/notebooks/iris_classification_notebook.ipynb
-# 4. Exécuter toutes les cellules
-```
+### Métriques importantes
 
-> **Note** : Le workbench clone automatiquement la démo Triton depuis GitHub au démarrage.
+- **Accuracy du modèle** : > 0.90
+- **Latence d'inférence** : < 100ms
+- **Disponibilité** : > 99.9%
 
-### Option 3: Exécution manuelle des étapes
-```bash
-# 1. Préparation des données
-python pipelines/data_preprocessing.py
+### Dashboards
 
-# 2. Entraînement du modèle
-python pipelines/model_training.py
+- **OpenShift AI Dashboard** : Vue d'ensemble
+- **ArgoCD** : État du déploiement GitOps
+- **Grafana** : Métriques détaillées
 
-# 3. Enregistrement dans Model Registry
-python pipelines/model_registry.py
-```
+## 🤝 Contribution
 
-## 🚀 Déploiement du modèle
+1. Fork le projet
+2. Créez une branche feature
+3. Committez vos changements
+4. Poussez vers la branche
+5. Créez une Pull Request
 
-### Déploiement automatique (GitOps intégré)
-```bash
-# Le GitOps est maintenant intégré dans le GitOps principal
-# La démo se déploie automatiquement avec OpenShift AI
+## 📄 Licence
 
-# Vérifier le statut du GitOps intégré
-make check-gitops
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
-# Vérification du statut
-./scripts/deploy.sh status
+## 🔗 Liens utiles
 
-# Test d'inférence
-./scripts/deploy.sh test
-```
-
-### Déploiement manuel (déploiement du modèle uniquement)
-```bash
-# 1. Appliquer les configurations Kustomize
-oc apply -k ../../components/instances/triton-demo-instance/base/model-serving/ -n triton-demo
-
-# 2. Attendre que le service soit prêt
-oc wait --for=condition=Ready inferenceservice/iris-classifier-triton -n triton-demo --timeout=300s
-
-# 3. Récupérer l'URL du service
-oc get inferenceservice iris-classifier-triton -n triton-demo -o jsonpath='{.status.url}'
-```
-
-## 🧪 Tests d'inférence
-
-### Test automatique
-```bash
-# Test complet avec script Python
-python scripts/test_inference.py --url <service-url>
-
-# Test avec données personnalisées
-python scripts/test_inference.py --url <service-url> --custom-data "[[5.1,3.5,1.4,0.2]]"
-```
-
-## 🔄 Migration vers GitOps intégré
-
-### ⚠️ Changements importants
-La démo Triton a été migrée vers le **GitOps intégré** dans le GitOps principal d'OpenShift AI.
-
-### ✅ Avantages de la migration
-- **Configuration unifiée** : Un seul GitOps pour tout
-- **Déploiement automatique** : La démo se déploie avec l'infrastructure
-- **Maintenance simplifiée** : Une seule configuration à gérer
-- **Cohérence garantie** : Utilise l'infrastructure déployée
-
-### 📚 Documentation de migration
-- **Documentation complète** : `../../docs/TRITON-DEMO-GITOPS-MIGRATION.md`
-- **Script de migration** : `../../scripts/migrate-triton-demo-to-gitops.sh`
-- **Composant intégré** : `../../components/instances/triton-demo-instance/`
-
-### 🚀 Utilisation du nouveau GitOps
-```bash
-# Déploiement automatique avec OpenShift AI
-oc apply -f ../../argocd-apps/openshift-ai-application.yaml
-
-# Vérification du statut
-make check-gitops
-
-# Accès aux services
-oc get all -n triton-demo
-```
-
-### Test manuel avec curl
-```bash
-# Test de santé
-curl -X GET <service-url>/v2/health/ready
-
-# Test d'inférence
-curl -X POST <service-url>/v2/models/iris_classifier/versions/1/infer 
-  -H "Content-Type: application/json" 
-  -d '{
-    "inputs": [
-      {
-        "name": "input_features",
-        "shape": [1, 4],
-        "datatype": "FP32",
-        "data": [5.1, 3.5, 1.4, 0.2]
-      }
-    ],
-    "outputs": [
-      {"name": "predictions"},
-      {"name": "probabilities"}
-    ]
-  }'
-```
+- [OpenShift AI Documentation](https://access.redhat.com/documentation/en-us/red_hat_openshift_ai_self-managed)
+- [NVIDIA Triton Documentation](https://github.com/triton-inference-server/server)
+- [Model Registry Documentation](https://model-registry.readthedocs.io/)
+- [Kubeflow Pipelines](https://www.kubeflow.org/docs/components/pipelines/)
