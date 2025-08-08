@@ -16,7 +16,7 @@ metadata:
     openshift.io/description: "Workbench Jupyter pour développement avec image standard data science"
     openshift.io/display-name: "Triton Demo - Data Science Workbench"
     notebooks.opendatahub.io/last-image-version-git-commit-selection: "latest"
-    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2024.2"
+    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2024.1"
     opendatahub.io/hardware-profile-namespace: ""
     notebooks.opendatahub.io/last-size-selection: "Small"
     opendatahub.io/username: "demo-user"
@@ -25,6 +25,24 @@ metadata:
 spec:
   template:
     spec:
+      initContainers:
+        - name: init-workbench
+          image: 'registry.redhat.io/rhoai/rhoai-notebook-s2i-rhel9:2024.1'
+          command: ["/bin/bash"]
+          args:
+            - -c
+            - |
+              echo "🚀 Initialisation du workbench..."
+              cd /opt/app-root/src
+              git clone -b main https://github.com/mouachan/openshift-ai-setup.git /tmp/openshift-ai-setup
+              cp -r /tmp/openshift-ai-setup/demos/triton-example ./triton-example
+              rm -rf /tmp/openshift-ai-setup
+              mkdir -p ./data
+              echo "Test S3 connection" > ./data/test_s3.txt
+              echo "✅ Workbench initialisé!"
+          volumeMounts:
+            - mountPath: /opt/app-root/src/
+              name: triton-workbench-storage
       containers:
         - resources:
             limits:
@@ -64,7 +82,7 @@ spec:
                 --ServerApp.quit_button=False
                 --ServerApp.tornado_settings={"user":"demo-user","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.local","hub_prefix":"/projects/triton-demo"}
             - name: JUPYTER_IMAGE
-              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2'
+              value: 'registry.redhat.io/rhoai/rhoai-notebook-s2i-rhel9:2024.1'
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: REQUESTS_CA_BUNDLE
@@ -87,20 +105,29 @@ spec:
               value: "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster.local"
             - name: KF_PIPELINES_UI_ENDPOINT
               value: "https://ds-pipeline-ui-triton-demo-pipelines-triton-demo.apps.cluster.local"
-            # Configuration Model Registry
+            # Configuration Model Registry - URL correcte
             - name: MODEL_REGISTRY_URL
-              value: "http://model-registry-service.rhoai-model-registries.svc.cluster.local:8080"
+              value: "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             - name: MODEL_REGISTRY_DATABASE_URL
-              value: "mysql://model_registry:password@mysql.db-ai.svc.cluster.local:3306/model_registry"
+              value: "mysql://mlmduser:TheBlurstOfTimes@mysql.db-ai.svc.cluster.local:3306/model_registry"
             # Configuration S3/MinIO externe
             - name: AWS_ACCESS_KEY_ID
-              value: "minio"
+              value: "accesskey"
             - name: AWS_SECRET_ACCESS_KEY
-              value: "minio123"
+              value: "secretkey"
             - name: AWS_S3_ENDPOINT
-              value: "minio-api.minio.svc.cluster.local:9000"
+              value: "minio.db-ai.svc.cluster.local:9000"
             - name: AWS_S3_BUCKET
-              value: "model-registry-bucket"
+              value: "model-registry"
+            - name: AWS_S3_FORCE_PATH_STYLE
+              value: "true"
+            # Configuration Git pour charger le projet
+            - name: GIT_REPO
+              value: "https://github.com/mouachan/openshift-ai-setup.git"
+            - name: GIT_BRANCH
+              value: "main"
+            - name: GIT_PATH
+              value: "demos/triton-example"
           ports:
             - containerPort: 8888
               name: notebook-port
@@ -117,7 +144,11 @@ spec:
               subPath: ca-bundle.crt
             - mountPath: /opt/app-root/pipeline-runtimes/
               name: runtime-images
-          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2'
+            # Montage de la data connection S3
+            - mountPath: /opt/app-root/src/data
+              name: s3-connection
+              readOnly: false
+          image: 'registry.redhat.io/rhoai/rhoai-notebook-s2i-rhel9:2024.1'
           workingDir: /opt/app-root/src
         - resources:
             limits:
@@ -215,3 +246,6 @@ spec:
           secret:
             defaultMode: 420
             secretName: triton-workbench-tls
+        # Volume pour la data connection S3
+        - name: s3-connection
+          emptyDir: {}

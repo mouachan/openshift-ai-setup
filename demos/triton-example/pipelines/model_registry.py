@@ -2,6 +2,7 @@
 """
 Étape 3: Model Registry
 Push du modèle vers le Model Registry avec métadonnées
+Utilise le SDK Model Registry officiel
 """
 
 import os
@@ -21,11 +22,11 @@ def push_to_registry(model_path: str = "/tmp/model", registry_url: str = None):
     
     # Configuration du Model Registry
     if not registry_url:
-        registry_url = os.getenv("MODEL_REGISTRY_URL", "http://model-registry-service:8080")
+        registry_url = os.getenv("MODEL_REGISTRY_URL", "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com")
     
-    # Initialiser le client Model Registry
+    # Initialiser le client Model Registry avec la nouvelle API
     try:
-        registry = ModelRegistry(server_address=registry_url, author="OpenShift AI Pipeline")
+        registry = ModelRegistry(registry_url, author="OpenShift AI Pipeline")
         print(f"✅ Connecté au Model Registry: {registry_url}")
     except Exception as e:
         print(f"❌ Erreur de connexion au Model Registry: {e}")
@@ -64,16 +65,16 @@ def push_to_registry(model_path: str = "/tmp/model", registry_url: str = None):
     
     s3_client = boto3.client(
         's3',
-        endpoint_url=os.getenv("S3_ENDPOINT", "http://minio-api.rhoai-model-registries.svc.cluster.local:9000"),
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", "minio"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", "minio123"),
+        endpoint_url=os.getenv("AWS_S3_ENDPOINT", "http://minio.db-ai.svc.cluster.local:9000"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", "accesskey"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", "secretkey"),
         config=s3_config
     )
     
     # Nom unique pour le modèle
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     s3_key = f"models/iris_classifier/{timestamp}/model.tar.gz"
-    bucket_name = os.getenv("S3_BUCKET", "models")
+    bucket_name = os.getenv("AWS_S3_BUCKET", "model-registry")
     
     try:
         # Créer le bucket s'il n'existe pas
@@ -95,40 +96,41 @@ def push_to_registry(model_path: str = "/tmp/model", registry_url: str = None):
     print("🔄 Enregistrement dans le Model Registry...")
     
     try:
-        # Créer ou récupérer le registered model
+        # Utiliser la nouvelle API du SDK Model Registry
         model_name = "iris-classifier"
-        try:
-            registered_model = registry.get_registered_model(model_name)
-            print(f"📋 Registered Model trouvé: {model_name}")
-        except:
-            registered_model = registry.register_model(
-                name=model_name,
-                description="Iris classification model using Random Forest, deployed with NVIDIA Triton"
-            )
-            print(f"📋 Nouveau Registered Model créé: {model_name}")
+        version_name = f"v{timestamp}"
         
-        # Créer une nouvelle version
-        model_version = registry.create_model_version(
-            registered_model=registered_model,
-            name=f"v{timestamp}",
-            version=timestamp,
+        # Enregistrer le modèle avec la nouvelle API
+        model = registry.register_model(
+            name=model_name,
+            uri=s3_url,
+            version=version_name,
             description=f"Iris classifier trained on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            model_format_name="tensorflow",
-            model_format_version="2.x",
-            storage_path=s3_url,
+            model_format_name="onnx",  # Format compatible avec Triton
+            model_format_version="1",
+            storage_key="s3-connection",  # Clé de connexion S3
+            storage_path=s3_key,
             metadata={
                 "accuracy": metrics['accuracy'],
                 "model_type": metrics['model_type'],
                 "features": metrics['features'],
                 "classes": metrics['classes'],
-                "framework": "scikit-learn + tensorflow",
+                "framework": "scikit-learn + onnx",
                 "triton_compatible": True,
-                "deployment_target": "nvidia-triton-runtime"
+                "deployment_target": "nvidia-triton-runtime",
+                "training_date": datetime.now().isoformat()
             }
         )
         
-        print(f"🎯 Model Version créée: {model_version.name}")
-        print(f"📍 ID: {model_version.id}")
+        print(f"🎯 Modèle enregistré: {model_name}")
+        print(f"📋 Version: {version_name}")
+        
+        # Récupérer les informations du modèle
+        registered_model = registry.get_registered_model(model_name)
+        print(f"📋 Registered Model: {registered_model}")
+        
+        version = registry.get_model_version(model_name, version_name)
+        print(f"📋 Model Version: {version}")
         
         # Nettoyer le fichier temporaire
         os.unlink(archive_path)
@@ -137,14 +139,15 @@ def push_to_registry(model_path: str = "/tmp/model", registry_url: str = None):
         
         return {
             "model_name": model_name,
-            "version": model_version.name,
-            "version_id": model_version.id,
+            "version": version_name,
             "s3_url": s3_url,
             "accuracy": metrics['accuracy']
         }
         
     except Exception as e:
         print(f"❌ Erreur Model Registry: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 if __name__ == "__main__":
@@ -155,7 +158,7 @@ if __name__ == "__main__":
     
     result = push_to_registry(args.model_path, args.registry_url)
     if result:
-        print(f"🚀 Pipeline terminée! Model Version ID: {result['version_id']}")
+        print(f"🚀 Pipeline terminée! Model: {result['model_name']} v{result['version']}")
     else:
         print("❌ Échec du pipeline")
         exit(1)
