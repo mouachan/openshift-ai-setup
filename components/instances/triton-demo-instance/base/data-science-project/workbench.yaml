@@ -7,19 +7,19 @@ metadata:
     app: triton-workbench
     opendatahub.io/dashboard: "true"
     opendatahub.io/odh-managed: "true"
-    opendatahub.io/user: demo-user
+    opendatahub.io/user: mouachan
   annotations:
     notebooks.opendatahub.io/inject-oauth: "true"
     opendatahub.io/image-display-name: "Standard Data Science"
-    notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.cluster.local/projects/triton-demo?notebookLogout=triton-workbench"
+    notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com/projects/triton-demo?notebookLogout=triton-workbench"
     opendatahub.io/accelerator-name: ""
     openshift.io/description: "Workbench Jupyter pour développement avec image standard data science"
     openshift.io/display-name: "Triton Demo - Data Science Workbench"
-    notebooks.opendatahub.io/last-image-version-git-commit-selection: "latest"
-    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2024.1"
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: "840a528"
+    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2025.1"
     opendatahub.io/hardware-profile-namespace: ""
-    notebooks.opendatahub.io/last-size-selection: "Small"
-    opendatahub.io/username: "demo-user"
+    notebooks.opendatahub.io/last-size-selection: "Medium"
+    opendatahub.io/username: "mouachan"
     opendatahub.io/hardware-profile-name: ""
     opendatahub.io/workbench-image-namespace: ""
 spec:
@@ -27,7 +27,7 @@ spec:
     spec:
       initContainers:
         - name: init-workbench
-          image: 'registry.redhat.io/rhoai/rhoai-notebook-s2i-rhel9:2024.1'
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
           command: ["/bin/bash"]
           args:
             - -c
@@ -46,11 +46,11 @@ spec:
       containers:
         - resources:
             limits:
-              cpu: '2'
-              memory: 8Gi
+              cpu: '6'
+              memory: 24Gi
             requests:
-              cpu: '1'
-              memory: 8Gi
+              cpu: '3'
+              memory: 24Gi
           readinessProbe:
             failureThreshold: 3
             httpGet:
@@ -80,9 +80,9 @@ spec:
                 --ServerApp.password=''
                 --ServerApp.base_url=/notebook/triton-demo/triton-workbench
                 --ServerApp.quit_button=False
-                --ServerApp.tornado_settings={"user":"demo-user","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster.local","hub_prefix":"/projects/triton-demo"}
+                --ServerApp.tornado_settings={"user":"mouachan","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com","hub_prefix":"/projects/triton-demo"}
             - name: JUPYTER_IMAGE
-              value: 'registry.redhat.io/rhoai/rhoai-notebook-s2i-rhel9:2024.1'
+              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: REQUESTS_CA_BUNDLE
@@ -128,6 +128,9 @@ spec:
               value: "main"
             - name: GIT_PATH
               value: "demos/triton-example"
+          envFrom:
+            - secretRef:
+                name: triton-demo-s3-connection
           ports:
             - containerPort: 8888
               name: notebook-port
@@ -148,7 +151,7 @@ spec:
             - mountPath: /opt/app-root/src/data
               name: s3-connection
               readOnly: false
-          image: 'registry.redhat.io/rhoai/rhoai-notebook-s2i-rhel9:2024.1'
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
           workingDir: /opt/app-root/src
         - resources:
             limits:
@@ -213,7 +216,7 @@ spec:
             - '--client-secret-file=/etc/oauth/client/secret'
             - '--scope=user:info user:check-access'
             - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"triton-workbench","namespace":"$(NAMESPACE)"}'
-            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.cluster.local/projects/triton-demo?notebookLogout=triton-workbench'
+            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com/projects/triton-demo?notebookLogout=triton-workbench'
       enableServiceLinks: false
       serviceAccountName: triton-workbench
       volumes:
