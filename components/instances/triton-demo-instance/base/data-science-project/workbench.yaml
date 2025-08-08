@@ -161,11 +161,18 @@ spec:
             # Installation des packages supplémentaires pour la démo Triton
             echo "📦 Installation des packages requis..."
             pip install --quiet --no-cache-dir \
-              tritonclient[http] \
-              scikit-learn \
-              tensorflow \
-              matplotlib \
-              seaborn \
+              tritonclient[http]>=2.30.0 \
+              scikit-learn>=1.3.0 \
+              tensorflow>=2.13.0 \
+              pandas>=2.0.0 \
+              numpy>=1.24.0 \
+              matplotlib>=3.7.0 \
+              seaborn>=0.12.0 \
+              requests>=2.31.0 \
+              boto3>=1.28.0 \
+              minio>=7.1.0 \
+              pyyaml>=6.0 \
+              click>=8.1.0 \
               git
             
             echo "✅ Packages installés avec succès"
