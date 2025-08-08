@@ -219,17 +219,12 @@ spec:
               echo "c.ElyraApp.runtime_env = 'kubeflow_pipelines'" >> /opt/app-root/src/.jupyter/jupyter_elyra_config.py
             fi
             
-            # Configurer le runtime Data Science Pipelines
-            echo "🔧 Configuration du runtime Data Science Pipelines..."
-            if [ -f "/opt/app-root/elyra-config/runtime-config.json" ]; then
-              cp /opt/app-root/elyra-config/runtime-config.json /opt/app-root/src/.local/share/jupyter/metadata/runtimes/kfp/Argo.json
-              echo "✅ Runtime Argo configuré"
-            fi
-            
-            # Exécuter le script d'initialisation si disponible
+            # Exécuter le script d'initialisation Elyra
             if [ -f "/opt/app-root/elyra-config/init-runtime.py" ]; then
               echo "🚀 Exécution du script d'initialisation Elyra..."
               python3 /opt/app-root/elyra-config/init-runtime.py
+            else
+              echo "⚠️ Script d'initialisation Elyra non trouvé"
             fi
             
             # Démarrage de Jupyter
