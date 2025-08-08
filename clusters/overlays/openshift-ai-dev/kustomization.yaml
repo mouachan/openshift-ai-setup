@@ -19,7 +19,7 @@ resources:
 
   # Infrastructure de base (sync-wave: "1") - MinIO et MySQL
   - ../../../components/instances/minio-instance/base
-  - ../../../components/instances/mysql-instance/base
+  # MySQL est maintenant dans rhoai-instance/base
 
   # Composants OpenShift (sync-wave: "2") - Serverless et Pipelines
   - ../../../components/instances/serverless-instance
