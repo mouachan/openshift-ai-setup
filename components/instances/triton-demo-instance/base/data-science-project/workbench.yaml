@@ -153,6 +153,25 @@ spec:
               readOnly: false
           image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
           workingDir: /opt/app-root/src
+          command:
+          - /bin/bash
+          - -c
+          args:
+          - |
+            # Installation des packages supplémentaires pour la démo Triton
+            echo "📦 Installation des packages requis..."
+            pip install --quiet --no-cache-dir \
+              tritonclient[http] \
+              scikit-learn \
+              tensorflow \
+              matplotlib \
+              seaborn \
+              git
+            
+            echo "✅ Packages installés avec succès"
+            
+            # Démarrage de Jupyter
+            start-notebook.sh ${NOTEBOOK_ARGS}
         - resources:
             limits:
               cpu: 100m
