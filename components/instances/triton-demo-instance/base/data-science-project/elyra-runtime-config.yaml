@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elyra-runtime-config
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: elyra-runtime-config
+    app.kubernetes.io/part-of: triton-demo
+data:
+  # Configuration du runtime Data Science Pipelines
+  runtime-config.json: |
+    {
+      "schema_name": "kfp",
+      "metadata": {
+        "display_name": "Data Science Pipelines",
+        "description": "Runtime pour les pipelines de data science sur OpenShift AI",
+        "tags": ["kubeflow", "pipelines", "openshift"]
+      },
+      "api_endpoint": "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
+      "user_namespace": "triton-demo",
+      "api_username": "",
+      "api_password": "",
+      "engine": "Argo",
+      "cos_endpoint": "http://minio-api.minio.svc:9000",
+      "cos_bucket": "triton-data",
+      "cos_username": "minioadmin",
+      "cos_password": "minioadmin",
+      "cos_auth_type": "USER_CREDENTIALS",
+      "tags": ["kubeflow", "pipelines", "openshift"]
+    }
+
+  # Script d'initialisation du runtime
+  init-runtime.py: |
+    #!/usr/bin/env python3
+    """
+    Script pour configurer automatiquement le runtime Elyra
+    """
+    import os
+    import json
+    import subprocess
+    from pathlib import Path
+
+    def main():
+        print("🔧 Configuration automatique du runtime Elyra...")
+        
+        # Chemin vers la configuration Elyra
+        elyra_config_dir = Path.home() / ".local" / "share" / "jupyter" / "metadata" / "runtimes"
+        elyra_config_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Configuration du runtime
+        runtime_config = {
+            "schema_name": "kfp",
+            "metadata": {
+                "display_name": "Data Science Pipelines",
+                "description": "Runtime pour les pipelines de data science sur OpenShift AI",
+                "tags": ["kubeflow", "pipelines", "openshift"]
+            },
+            "api_endpoint": "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
+            "user_namespace": "triton-demo",
+            "api_username": "",
+            "api_password": "",
+            "engine": "Argo",
+            "cos_endpoint": "http://minio-api.minio.svc:9000",
+            "cos_bucket": "triton-data",
+            "cos_username": "minioadmin",
+            "cos_password": "minioadmin",
+            "cos_auth_type": "USER_CREDENTIALS",
+            "tags": ["kubeflow", "pipelines", "openshift"]
+        }
+        
+        # Sauvegarder la configuration
+        runtime_file = elyra_config_dir / "kfp" / "Data Science Pipelines.json"
+        runtime_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(runtime_file, 'w') as f:
+            json.dump(runtime_config, f, indent=2)
+        
+        print(f"✅ Runtime configuré: {runtime_file}")
+        print("🔗 Endpoint: https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com")
+        print("📦 Bucket S3: triton-data")
+        
+        # Vérifier la configuration
+        try:
+            result = subprocess.run([
+                "elyra-metadata", "list", "runtimes", "--json"
+            ], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                print("✅ Configuration vérifiée avec succès")
+            else:
+                print("⚠️ Impossible de vérifier la configuration")
+        except Exception as e:
+            print(f"⚠️ Erreur lors de la vérification: {e}")
+
+    if __name__ == "__main__":
+        main()
+
+  # Configuration Elyra avancée
+  jupyter_elyra_config.py: |
+    # Configuration Elyra pour les pipelines
+    c.ElyraApp.enable_pipeline_editing = True
+    c.ElyraApp.runtime_env = 'kubeflow_pipelines'
+    
+    # Configuration des runtimes
+    c.ElyraApp.runtime_configs = {
+        'kfp': {
+            'display_name': 'Data Science Pipelines',
+            'api_endpoint': 'https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com',
+            'user_namespace': 'triton-demo',
+            'engine': 'Argo',
+            'cos_endpoint': 'http://minio-api.minio.svc:9000',
+            'cos_bucket': 'triton-data',
+            'cos_username': 'minioadmin',
+            'cos_password': 'minioadmin',
+            'cos_auth_type': 'USER_CREDENTIALS'
+        }
+    }
+    
+    # Configuration des data connections
+    c.ElyraApp.data_connections = {
+        'triton-data-connection': {
+            'type': 's3',
+            'endpoint': 'http://minio-api.minio.svc:9000',
+            'access_key': 'minioadmin',
+            'secret_key': 'minioadmin',
+            'bucket': 'triton-data'
+        }
+    } 

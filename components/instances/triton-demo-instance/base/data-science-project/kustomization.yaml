@@ -16,6 +16,7 @@ resources:
 - s3-connection-secret.yaml
 - pipeline-minio-secret.yaml
 - pipeline-db-secret.yaml
+- elyra-runtime-config.yaml
 
 # Labels communs pour tous les objets
 labels:

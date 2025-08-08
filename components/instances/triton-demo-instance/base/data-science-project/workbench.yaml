@@ -175,6 +175,9 @@ spec:
             - mountPath: /opt/app-root/src/data
               name: s3-connection
               readOnly: false
+            - mountPath: /opt/app-root/elyra-config
+              name: elyra-runtime-config
+              readOnly: true
           image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
           workingDir: /opt/app-root/src
           command:
@@ -206,8 +209,28 @@ spec:
             # Configuration Elyra sans interaction
             echo "🔧 Configuration Elyra..."
             mkdir -p /opt/app-root/src/.jupyter
-            echo "c.ElyraApp.enable_pipeline_editing = True" > /opt/app-root/src/.jupyter/jupyter_elyra_config.py
-            echo "c.ElyraApp.runtime_env = 'kubeflow_pipelines'" >> /opt/app-root/src/.jupyter/jupyter_elyra_config.py
+            mkdir -p /opt/app-root/src/.local/share/jupyter/metadata/runtimes/kfp
+            
+            # Copier la configuration Elyra depuis le ConfigMap
+            if [ -f "/opt/app-root/elyra-config/jupyter_elyra_config.py" ]; then
+              cp /opt/app-root/elyra-config/jupyter_elyra_config.py /opt/app-root/src/.jupyter/
+            else
+              echo "c.ElyraApp.enable_pipeline_editing = True" > /opt/app-root/src/.jupyter/jupyter_elyra_config.py
+              echo "c.ElyraApp.runtime_env = 'kubeflow_pipelines'" >> /opt/app-root/src/.jupyter/jupyter_elyra_config.py
+            fi
+            
+            # Configurer le runtime Data Science Pipelines
+            echo "🔧 Configuration du runtime Data Science Pipelines..."
+            if [ -f "/opt/app-root/elyra-config/runtime-config.json" ]; then
+              cp /opt/app-root/elyra-config/runtime-config.json /opt/app-root/src/.local/share/jupyter/metadata/runtimes/kfp/Data\ Science\ Pipelines.json
+              echo "✅ Runtime Data Science Pipelines configuré"
+            fi
+            
+            # Exécuter le script d'initialisation si disponible
+            if [ -f "/opt/app-root/elyra-config/init-runtime.py" ]; then
+              echo "🚀 Exécution du script d'initialisation Elyra..."
+              python3 /opt/app-root/elyra-config/init-runtime.py
+            fi
             
             # Démarrage de Jupyter
             start-notebook.sh ${NOTEBOOK_ARGS}
@@ -310,3 +333,7 @@ spec:
         # Volume pour la data connection S3
         - name: s3-connection
           emptyDir: {}
+        # Volume pour la configuration Elyra
+        - name: elyra-runtime-config
+          configMap:
+            name: elyra-runtime-config
