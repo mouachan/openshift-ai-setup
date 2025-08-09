@@ -50,7 +50,7 @@ data:
                 "cos_directory": "",
                 "tags": ["kubeflow", "pipelines", "openshift"],
                 "engine": "Argo",  # Corrigé : Argo au lieu de Kubeflow Pipelines
-                "auth_type": "KUBERNETES_SERVICE_ACCOUNT_TOKEN",
+                "auth_type": "NO_AUTHENTICATION",
                 "runtime_type": "KUBEFLOW_PIPELINES",
                 "api_version": "v1",
                 "user_namespace": NAMESPACE,
