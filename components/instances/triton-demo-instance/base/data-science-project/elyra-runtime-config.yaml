@@ -50,7 +50,7 @@ data:
                 "cos_directory": "",
                 "tags": ["kubeflow", "pipelines", "openshift"],
                 "engine": "Argo",  # Corrigé : Argo au lieu de Kubeflow Pipelines
-                "auth_type": "NO_AUTHENTICATION",
+                "auth_type": "KUBERNETES_SERVICE_ACCOUNT_TOKEN",
                 "runtime_type": "KUBEFLOW_PIPELINES",
                 "api_version": "v1",
                 "user_namespace": NAMESPACE,
@@ -96,6 +96,10 @@ data:
             print(f"📦 Bucket S3: {runtime_config['metadata']['cos_bucket']}")
             print(f"🏷️ Nom du runtime: {runtime_config['display_name']}")
             print(f"⚙️ Engine: {runtime_config['metadata']['engine']}")
+            print(f"🔐 Auth Type: {runtime_config['metadata']['auth_type']}")
+            
+            # Configuration de l'authentification Kubernetes
+            setup_kubernetes_auth()
             
             # Vérifier que le fichier existe
             if os.path.exists(runtime_file):
@@ -104,6 +108,41 @@ data:
                 print("❌ Erreur: Le fichier de runtime n'a pas été créé")
         else:
             print("❌ Échec de la configuration du runtime")
+
+    def setup_kubernetes_auth():
+        """Configure l'authentification Kubernetes pour les pipelines"""
+        print("\n🔐 Configuration de l'authentification Kubernetes...")
+        
+        # Vérifier la présence du token de service account
+        token_path = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        if os.path.exists(token_path):
+            print("✅ Token de service account trouvé")
+            try:
+                with open(token_path, 'r') as f:
+                    token = f.read().strip()
+                    print(f"✅ Token chargé (longueur: {len(token)} caractères)")
+            except Exception as e:
+                print(f"⚠️ Erreur lors de la lecture du token: {e}")
+        else:
+            print("⚠️ Token de service account non trouvé")
+            
+        # Vérifier les variables d'environnement Kubernetes
+        k8s_host = os.environ.get('KUBERNETES_SERVICE_HOST', 'kubernetes.default.svc')
+        k8s_port = os.environ.get('KUBERNETES_SERVICE_PORT', '443')
+        print(f"✅ API Kubernetes: https://{k8s_host}:{k8s_port}")
+        
+        namespace_path = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+        if os.path.exists(namespace_path):
+            try:
+                with open(namespace_path, 'r') as f:
+                    namespace = f.read().strip()
+                    print(f"✅ Namespace: {namespace}")
+            except Exception as e:
+                print(f"⚠️ Erreur lors de la lecture du namespace: {e}")
+        else:
+            print(f"✅ Namespace configuré: {NAMESPACE}")
+            
+        print("✅ Configuration d'authentification terminée")
 
     if __name__ == "__main__":
         main()

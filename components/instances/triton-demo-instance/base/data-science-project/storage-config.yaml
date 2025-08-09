@@ -23,6 +23,30 @@ spec:
   volumeMode: Filesystem
 
 ---
+# PVC pour le cache pip (optimisation démarrage)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: triton-workbench-pip-cache
+  namespace: triton-demo
+  labels:
+    app.kubernetes.io/name: triton-workbench-pip-cache
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+  annotations:
+    openshift.io/display-name: "Triton Workbench Pip Cache"
+    openshift.io/description: "Cache persistant pour les packages pip"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: gp3-csi
+  volumeMode: Filesystem
+
+---
 # Service Account pour le workbench
 apiVersion: v1
 kind: ServiceAccount
@@ -38,12 +62,52 @@ metadata:
     serviceaccounts.openshift.io/oauth-redirectreference.first: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"triton-workbench"}}'
 
 ---
+# ClusterRole spécifique pour l'accès aux pipelines
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: triton-pipeline-user
+  labels:
+    app.kubernetes.io/name: triton-pipeline-rbac
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/managed-by: gitops
+rules:
+# Accès aux ressources Data Science Pipelines
+- apiGroups: ["datasciencepipelinesapplications.opendatahub.io"]
+  resources: ["datasciencepipelinesapplications"]
+  verbs: ["get", "list", "watch"]
+# Accès aux pipelines Kubeflow
+- apiGroups: ["pipelines.kubeflow.org"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Accès aux workflows Argo
+- apiGroups: ["argoproj.io"]
+  resources: ["workflows", "workflowtemplates"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Accès aux expériences KFP
+- apiGroups: ["kubeflow.org"]
+  resources: ["experiments", "runs", "recurringruns"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Accès aux pods pour les runs de pipeline
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "watch"]
+# Accès aux configmaps pour la configuration
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+# Accès aux services
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+
+---
 # ClusterRoleBinding pour l'accès aux pipelines
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: triton-workbench-pipelines
-  namespace: triton-demo
   labels:
     app.kubernetes.io/name: triton-workbench-rbac
     app.kubernetes.io/component: rbac
@@ -55,7 +119,7 @@ subjects:
   namespace: triton-demo
 roleRef:
   kind: ClusterRole
-  name: ds-pipeline-user
+  name: triton-pipeline-user
   apiGroup: rbac.authorization.k8s.io
 
 ---

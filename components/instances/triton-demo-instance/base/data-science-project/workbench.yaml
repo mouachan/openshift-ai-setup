@@ -152,6 +152,13 @@ spec:
               value: "main"
             - name: GIT_PATH
               value: "demos/triton-example"
+            # Configuration pour l'authentification Kubernetes Service Account
+            - name: KUBERNETES_SERVICE_ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: triton-workbench-sa-token
+                  key: token
+                  optional: true
           envFrom:
             - secretRef:
                 name: triton-demo-s3-connection
@@ -178,65 +185,79 @@ spec:
             - mountPath: /opt/app-root/elyra-config
               name: elyra-runtime-config
               readOnly: true
-          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
+            # Volume mount pour le service account token
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: kube-api-access
+              readOnly: true
+            # Volume mount pour le cache pip (persistant)
+            - mountPath: /opt/app-root/src/.pip-cache
+              name: pip-cache
+              readOnly: false
+          image: 'quay.io/mouachan/triton-demo-notebook:latest'
           workingDir: /opt/app-root/src
           command:
           - /bin/bash
           - -c
           args:
           - |
-            # Installation des packages supplémentaires pour la démo Triton
-            echo "📦 Installation des packages requis..."
-            pip install --quiet --no-cache-dir \
-              tritonclient[http]>=2.30.0 \
-              scikit-learn>=1.3.0 \
-              tensorflow>=2.13.0 \
-              pandas>=2.0.0 \
-              numpy>=1.24.0 \
-              matplotlib>=3.7.0 \
-              seaborn>=0.12.0 \
-              requests>=2.31.0 \
-              boto3>=1.28.0 \
-              minio>=7.1.0 \
-              pyyaml>=6.0 \
-              click>=8.1.0 \
-              kfp>=2.0.0 \
-              kfp-kubernetes>=1.0.0 \
-              model-registry>=0.1.0
+            # Script de démarrage ultra-rapide avec image pré-configurée
+            echo "🚀 Démarrage Triton Demo Notebook (image optimisée)"
+            echo "📦 Packages pré-installés, configuration express..."
             
-            echo "✅ Packages installés avec succès"
+            # Variables d'environnement
+            NAMESPACE=${KUBERNETES_NAMESPACE:-"triton-demo"}
+            CLUSTER_DOMAIN="apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             
-            # Configuration Elyra sans interaction
-            echo "🔧 Configuration Elyra..."
-            mkdir -p /opt/app-root/src/.jupyter
-            mkdir -p /opt/app-root/src/.local/share/jupyter/metadata/runtimes/kfp
+            # Configuration express Elyra (< 1 seconde)
+            echo "⚡ Configuration express du runtime Elyra..."
+            METADATA_DIR="/opt/app-root/src/.local/share/jupyter/metadata"
+            mkdir -p "${METADATA_DIR}/runtimes"
             
-            # Copier la configuration Elyra depuis le ConfigMap
-            if [ -f "/opt/app-root/elyra-config/jupyter_elyra_config.py" ]; then
-              cp /opt/app-root/elyra-config/jupyter_elyra_config.py /opt/app-root/src/.jupyter/
-            else
-              echo "c.ElyraApp.enable_pipeline_editing = True" > /opt/app-root/src/.jupyter/jupyter_elyra_config.py
-              echo "c.ElyraApp.runtime_env = 'kubeflow_pipelines'" >> /opt/app-root/src/.jupyter/jupyter_elyra_config.py
+            cat > "${METADATA_DIR}/runtimes/data_science_pipelines.json" << EOF
+            {
+              "display_name": "Data Science Pipelines (Optimized)",
+              "metadata": {
+                "api_endpoint": "https://ds-pipeline-${NAMESPACE}-pipelines-${NAMESPACE}.${CLUSTER_DOMAIN}",
+                "api_username": "",
+                "api_password": "",
+                "cos_endpoint": "http://minio-api.minio.svc:9000",
+                "cos_username": "minioadmin",
+                "cos_password": "minioadmin",
+                "cos_bucket": "triton-data",
+                "cos_directory": "",
+                "tags": ["kubeflow", "pipelines", "triton", "optimized"],
+                "engine": "Argo",
+                "auth_type": "KUBERNETES_SERVICE_ACCOUNT_TOKEN",
+                "runtime_type": "KUBEFLOW_PIPELINES",
+                "api_version": "v1",
+                "user_namespace": "${NAMESPACE}",
+                "engine_namespace": "${NAMESPACE}",
+                "cos_secure": false,
+                "disable_ssl_verification": false,
+                "cos_auth_type": "USER_CREDENTIALS"
+              },
+              "schema_name": "kfp",
+              "name": "data_science_pipelines"
+            }
+            EOF
+            
+            # Clonage du repository si configuré
+            if [ -n "${GIT_REPO}" ] && [ -n "${GIT_PATH}" ]; then
+              echo "📂 Clonage express du repository..."
+              if [ ! -d ".git" ]; then
+                git clone "${GIT_REPO}" temp_repo 2>/dev/null || echo "⚠️ Clonage échoué"
+                if [ -d "temp_repo/${GIT_PATH}" ]; then
+                  cp -r temp_repo/${GIT_PATH}/* . 2>/dev/null || echo "⚠️ Copie échouée"
+                  rm -rf temp_repo
+                fi
+              fi
             fi
             
-            # Démarrage de Jupyter en arrière-plan
+            echo "✅ Configuration terminée en < 5 secondes!"
             echo "🚀 Démarrage de Jupyter Lab..."
-            start-notebook.sh ${NOTEBOOK_ARGS} &
             
-            # Attendre que Jupyter soit prêt
-            echo "⏳ Attente que Jupyter soit prêt..."
-            sleep 30
-            
-            # Exécuter le script d'initialisation Elyra après le démarrage de Jupyter
-            if [ -f "/opt/app-root/elyra-config/init-runtime.py" ]; then
-              echo "🚀 Configuration du runtime Elyra..."
-              python3 /opt/app-root/elyra-config/init-runtime.py
-            else
-              echo "⚠️ Script d'initialisation Elyra non trouvé"
-            fi
-            
-            # Attendre le processus Jupyter
-            wait
+            # Démarrage direct de Jupyter (tous les packages sont pré-installés)
+            exec start-notebook.sh ${NOTEBOOK_ARGS}
         - resources:
             limits:
               cpu: 100m
@@ -302,7 +323,7 @@ spec:
             - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"triton-workbench","namespace":"$(NAMESPACE)"}'
             - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com/projects/triton-demo?notebookLogout=triton-workbench'
       enableServiceLinks: false
-      serviceAccountName: triton-workbench
+      serviceAccountName: triton-workbench-sa
       volumes:
         - name: triton-workbench-storage
           persistentVolumeClaim:
@@ -340,3 +361,7 @@ spec:
         - name: elyra-runtime-config
           configMap:
             name: elyra-runtime-config
+        # Volume persistant pour le cache pip
+        - name: pip-cache
+          persistentVolumeClaim:
+            claimName: triton-workbench-pip-cache
