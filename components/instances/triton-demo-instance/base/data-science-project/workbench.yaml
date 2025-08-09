@@ -219,16 +219,24 @@ spec:
               echo "c.ElyraApp.runtime_env = 'kubeflow_pipelines'" >> /opt/app-root/src/.jupyter/jupyter_elyra_config.py
             fi
             
-            # Exécuter le script d'initialisation Elyra
+            # Démarrage de Jupyter en arrière-plan
+            echo "🚀 Démarrage de Jupyter Lab..."
+            start-notebook.sh ${NOTEBOOK_ARGS} &
+            
+            # Attendre que Jupyter soit prêt
+            echo "⏳ Attente que Jupyter soit prêt..."
+            sleep 30
+            
+            # Exécuter le script d'initialisation Elyra après le démarrage de Jupyter
             if [ -f "/opt/app-root/elyra-config/init-runtime.py" ]; then
-              echo "🚀 Exécution du script d'initialisation Elyra..."
+              echo "🚀 Configuration du runtime Elyra..."
               python3 /opt/app-root/elyra-config/init-runtime.py
             else
               echo "⚠️ Script d'initialisation Elyra non trouvé"
             fi
             
-            # Démarrage de Jupyter
-            start-notebook.sh ${NOTEBOOK_ARGS}
+            # Attendre le processus Jupyter
+            wait
         - resources:
             limits:
               cpu: 100m

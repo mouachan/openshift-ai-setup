@@ -7,112 +7,103 @@ metadata:
     app.kubernetes.io/name: elyra-runtime-config
     app.kubernetes.io/part-of: triton-demo
 data:
-  # Script d'initialisation du runtime
+  # Script d'initialisation du runtime basé sur le script officiel OpenShift AI
   init-runtime.py: |
     #!/usr/bin/env python3
     """
     Script pour configurer automatiquement le runtime Elyra
+    Basé sur la méthode officielle OpenShift AI
     """
     import os
     import json
-    import subprocess
-    import time
     from pathlib import Path
 
-    def main():
-        print("🔧 Configuration automatique du runtime Elyra...")
-        
-        # Configuration du runtime
-        runtime_config = {
-            "schema_name": "kfp",
-            "metadata": {
-                "display_name": "Data Science Pipelines",
-                "description": "Runtime pour les pipelines de data science sur OpenShift AI",
-                "tags": ["kubeflow", "pipelines", "openshift"]
-            },
-            "api_endpoint": "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
-            "user_namespace": "triton-demo",
-            "api_username": "",
-            "api_password": "",
-            "engine": "Argo",
-            "cos_endpoint": "http://minio-api.minio.svc:9000",
-            "cos_bucket": "triton-data",
-            "cos_username": "minioadmin",
-            "cos_password": "minioadmin",
-            "cos_auth_type": "USER_CREDENTIALS",
-            "tags": ["kubeflow", "pipelines", "openshift"]
-        }
-        
-        # Sauvegarder la configuration temporairement
-        config_file = "/tmp/runtime-config.json"
-        with open(config_file, 'w') as f:
-            json.dump(runtime_config, f, indent=2)
-        
-        print(f"📄 Configuration sauvegardée: {config_file}")
-        
-        # Attendre que Elyra soit prêt
-        print("⏳ Attente qu'Elyra soit prêt...")
-        time.sleep(10)
-        
-        # Créer le runtime via elyra-metadata
-        try:
-            print("🚀 Création du runtime via elyra-metadata...")
-            result = subprocess.run([
-                "elyra-metadata", "install", "runtimes", "--schema_name=kfp", 
-                "--name=Data Science Pipelines", "--display_name=Data Science Pipelines",
-                f"--api_endpoint={runtime_config['api_endpoint']}",
-                f"--user_namespace={runtime_config['user_namespace']}",
-                f"--engine={runtime_config['engine']}",
-                f"--cos_endpoint={runtime_config['cos_endpoint']}",
-                f"--cos_bucket={runtime_config['cos_bucket']}",
-                f"--cos_username={runtime_config['cos_username']}",
-                f"--cos_password={runtime_config['cos_password']}",
-                f"--cos_auth_type={runtime_config['cos_auth_type']}"
-            ], capture_output=True, text=True, timeout=30)
-            
-            if result.returncode == 0:
-                print("✅ Runtime créé avec succès via elyra-metadata")
-            else:
-                print(f"⚠️ Erreur lors de la création: {result.stderr}")
-                # Essayer une approche alternative
-                print("🔄 Tentative avec approche alternative...")
-                create_runtime_alternative(runtime_config)
-        except Exception as e:
-            print(f"⚠️ Erreur avec elyra-metadata: {e}")
-            create_runtime_alternative(runtime_config)
-        
-        # Vérifier la configuration
-        try:
-            result = subprocess.run([
-                "elyra-metadata", "list", "runtimes", "--json"
-            ], capture_output=True, text=True, timeout=10)
-            if result.returncode == 0:
-                print("✅ Configuration vérifiée avec succès")
-                print(result.stdout)
-            else:
-                print("⚠️ Impossible de vérifier la configuration")
-        except Exception as e:
-            print(f"⚠️ Erreur lors de la vérification: {e}")
+    # Configuration basée sur le modèle Data Science Project
+    ELYRA_METADATA_DIR = os.path.expanduser("~/.local/share/jupyter/metadata")
+    NAMESPACE = "triton-demo"
+    CLUSTER_DOMAIN = "apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
 
-    def create_runtime_alternative(runtime_config):
-        """Approche alternative en créant directement le fichier de configuration"""
-        print("📁 Création directe du fichier de configuration...")
+    def ensure_elyra_dirs():
+        """Crée les répertoires Elyra nécessaires"""
+        dirs = [
+            f"{ELYRA_METADATA_DIR}/runtimes",
+            f"{ELYRA_METADATA_DIR}/component-catalogs",
+            f"{ELYRA_METADATA_DIR}/code-snippets",
+        ]
         
-        # Chemin vers la configuration Elyra
-        elyra_config_dir = Path.home() / ".local" / "share" / "jupyter" / "metadata" / "runtimes"
-        elyra_config_dir.mkdir(parents=True, exist_ok=True)
+        for dir_path in dirs:
+            Path(dir_path).mkdir(parents=True, exist_ok=True)
+            print(f"✓ Répertoire créé: {dir_path}")
+
+    def create_kubeflow_runtime():
+        """Crée la configuration runtime Kubeflow Pipelines comme OpenShift AI"""
+        return {
+            "display_name": "Data Science Pipelines",
+            "metadata": {
+                "api_endpoint": f"https://ds-pipeline-{NAMESPACE}-pipelines-{NAMESPACE}.{CLUSTER_DOMAIN}",
+                "api_username": "",
+                "api_password": "",
+                "cos_endpoint": "http://minio-api.minio.svc:9000",
+                "cos_username": "minioadmin",
+                "cos_password": "minioadmin",
+                "cos_bucket": "triton-data",
+                "cos_directory": "",
+                "tags": ["kubeflow", "pipelines", "openshift"],
+                "engine": "Argo",  # Corrigé : Argo au lieu de Kubeflow Pipelines
+                "auth_type": "NO_AUTHENTICATION",
+                "runtime_type": "KUBEFLOW_PIPELINES",
+                "api_version": "v1",
+                "user_namespace": NAMESPACE,
+                "engine_namespace": NAMESPACE,
+                "cos_secure": False,
+                "disable_ssl_verification": False,
+                "cos_auth_type": "USER_CREDENTIALS"
+            },
+            "schema_name": "kfp",
+            "name": "data_science_pipelines"
+        }
+
+    def save_metadata(metadata, file_path):
+        """Sauvegarde les métadonnées dans un fichier JSON"""
+        try:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
+            print(f"✓ Runtime configuré: {file_path}")
+            return True
+        except Exception as e:
+            print(f"✗ Erreur lors de la sauvegarde {file_path}: {e}")
+            return False
+
+    def main():
+        """Configuration principale du runtime comme OpenShift AI"""
+        print("🔧 Configuration automatique du runtime Elyra (méthode OpenShift AI)")
+        print("=" * 70)
         
-        # Créer le fichier de configuration
-        runtime_file = elyra_config_dir / "kfp" / "Data Science Pipelines.json"
-        runtime_file.parent.mkdir(parents=True, exist_ok=True)
+        # Créer les répertoires nécessaires
+        ensure_elyra_dirs()
         
-        with open(runtime_file, 'w') as f:
-            json.dump(runtime_config, f, indent=2)
+        # Créer le runtime Kubeflow comme OpenShift AI
+        runtime_config = create_kubeflow_runtime()
         
-        print(f"✅ Runtime configuré directement: {runtime_file}")
-        print("🔗 Endpoint: https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com")
-        print("📦 Bucket S3: triton-data")
-        print("🏷️ Nom du runtime: Data Science Pipelines")
+        # Sauvegarder dans le bon répertoire
+        runtime_file = f"{ELYRA_METADATA_DIR}/runtimes/data_science_pipelines.json"
+        
+        if save_metadata(runtime_config, runtime_file):
+            print("\n✅ Configuration terminée avec succès!")
+            print(f"📁 Fichier: {runtime_file}")
+            print(f"🔗 Endpoint: {runtime_config['metadata']['api_endpoint']}")
+            print(f"📦 Bucket S3: {runtime_config['metadata']['cos_bucket']}")
+            print(f"🏷️ Nom du runtime: {runtime_config['display_name']}")
+            print(f"⚙️ Engine: {runtime_config['metadata']['engine']}")
+            
+            # Vérifier que le fichier existe
+            if os.path.exists(runtime_file):
+                print("✅ Le runtime est prêt à être utilisé dans Elyra!")
+            else:
+                print("❌ Erreur: Le fichier de runtime n'a pas été créé")
+        else:
+            print("❌ Échec de la configuration du runtime")
 
     if __name__ == "__main__":
         main()
