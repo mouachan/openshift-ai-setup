@@ -39,11 +39,11 @@ ENV PYTHONUNBUFFERED=1 \
 # Mise à jour de pip et des outils de base
 RUN python -m pip install --upgrade pip setuptools wheel
 
-# Installation de Jupyter et Elyra d'abord
+# Installation de Jupyter et Elyra avec versions compatibles
 RUN pip install --no-cache-dir \
     "jupyter>=1.0.0" \
-    "jupyterlab>=4.0.0" \
-    "notebook>=7.0.0" \
+    "jupyterlab>=3.4.0,<4.0" \
+    "notebook>=6.4.0,<7.0" \
     "elyra>=3.15.0"
 
 # Couche 1: Packages de base pour éviter les conflits
