@@ -153,12 +153,12 @@ spec:
             - name: GIT_PATH
               value: "demos/triton-example"
             # Configuration pour l'authentification Kubernetes Service Account
-            - name: KUBERNETES_SERVICE_ACCOUNT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: triton-workbench-sa-token
-                  key: token
-                  optional: true
+            # - name: KUBERNETES_SERVICE_ACCOUNT_TOKEN
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: triton-workbench-sa-token
+            #       key: token
+            #       optional: true
           envFrom:
             - secretRef:
                 name: triton-demo-s3-connection
@@ -186,9 +186,9 @@ spec:
               name: elyra-runtime-config
               readOnly: true
             # Volume mount pour le service account token
-            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access
-              readOnly: true
+            # - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+            #   name: kube-api-access
+            #   readOnly: true
             # Volume mount pour le cache pip (persistant)
             - mountPath: /opt/app-root/src/.pip-cache
               name: pip-cache

@@ -27,3 +27,4 @@ commonLabels:
 components:
   - components/model-registry/
   - components/custom-serving-runtimes/
+  - components/custom-notebook-images/
