@@ -10,7 +10,6 @@ namespace: triton-demo
 
 resources:
 - namespace.yaml
-- pipeline-server.yaml
 - workbench.yaml
 - storage-config.yaml
 - s3-connection-secret.yaml
