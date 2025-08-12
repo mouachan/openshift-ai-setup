@@ -63,8 +63,8 @@ def data_preprocessing(output_data: Output[Artifact]) -> str:
         pickle.dump(scaler, f)
     
     metadata = {
-        "feature_names": feature_names.tolist(),
-        "target_names": target_names.tolist(),
+        "feature_names": feature_names,  # feature_names est déjà une liste
+        "target_names": target_names,    # target_names est déjà une liste
         "n_features": X.shape[1],
         "n_classes": len(target_names),
         "train_size": len(X_train),
