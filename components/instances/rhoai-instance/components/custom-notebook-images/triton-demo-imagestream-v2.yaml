@@ -1,0 +1,70 @@
+---
+# ImageStream conforme aux standards OpenShift AI
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: triton-demo-notebook
+  namespace: redhat-ods-applications
+  labels:
+    # Labels standards OpenShift AI
+    app.kubernetes.io/created-by: byon
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/notebook-image: "true"
+    opendatahub.io/component: "true"
+    app.opendatahub.io/workbenches: "true"
+    app.kubernetes.io/part-of: workbenches
+    platform.opendatahub.io/part-of: workbenches
+    component.opendatahub.io/name: notebooks
+    # Labels custom
+    app.kubernetes.io/name: triton-demo-notebook
+    app.kubernetes.io/component: notebook-image
+    app.kubernetes.io/managed-by: gitops
+  annotations:
+    # Annotations OpenShift AI standards
+    opendatahub.io/notebook-image-name: "Triton Demo Notebook"
+    opendatahub.io/notebook-image-desc: "Jupyter notebook image with ML/AI libraries optimized for Triton inference demos with fast startup"
+    opendatahub.io/notebook-image-url: "https://github.com/mouachan/openshift-ai-setup/tree/main/demos/triton-example"
+    opendatahub.io/notebook-image-order: "30"
+    opendatahub.io/recommended-accelerators: "[]"
+    # Annotations OpenShift
+    openshift.io/display-name: "Triton Demo Notebook (Optimized)"
+    openshift.io/description: "Image optimisée avec packages ML/AI pré-installés - Démarrage 30-60 sec"
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: "latest"
+      annotations:
+        # Métadonnées détaillées pour OpenShift AI Dashboard
+        opendatahub.io/workbench-image-recommended: "true"
+        openshift.io/display-name: "Triton Demo - v4.2 (Compatible OpenShift AI)"
+        openshift.io/description: "Image optimisée v4.2 basée sur Red Hat UBI9 avec support complet NOTEBOOK_ARGS"
+        openshift.io/imported-from: "quay.io/mouachan/triton-demo-notebook:v4.2"
+        # Logiciels installés
+        opendatahub.io/notebook-software: |
+          [
+            {"name":"Python","version":"v3.11"},
+            {"name":"Jupyter Lab","version":"3.6+"},
+            {"name":"Elyra","version":"3.15.0"}
+          ]
+        # Dépendances Python
+        opendatahub.io/notebook-python-dependencies: |
+          [
+            {"name":"NumPy","version":"2.3+"},
+            {"name":"Pandas","version":"2.3+"},
+            {"name":"Scikit-learn","version":"1.7+"},
+            {"name":"Matplotlib","version":"3.10+"},
+            {"name":"Seaborn","version":"0.13+"},
+            {"name":"Kubeflow Pipelines","version":"1.8+"},
+            {"name":"Triton Client","version":"2.59+"},
+            {"name":"Boto3","version":"1.40+"},
+            {"name":"MinIO","version":"7.2+"},
+            {"name":"Kubernetes","version":"25.3+"}
+          ]
+      from:
+        kind: DockerImage
+        name: quay.io/mouachan/triton-demo-notebook:v4.2
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Source
