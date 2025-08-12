@@ -70,9 +70,9 @@ data:
     def create_kubeflow_runtime():
         """Crée la configuration runtime Kubeflow Pipelines comme OpenShift AI"""
         return {
-            "display_name": "Data Science Pipelines (Triton Demo)",
+            "display_name": "Data Science Pipelines (OpenShift AI)",
             "metadata": {
-                "api_endpoint": f"https://ds-pipeline-triton-demo-pipelines-{NAMESPACE}.{CLUSTER_DOMAIN}",
+                "api_endpoint": "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
                 "api_username": "",
                 "api_password": "",
                 "cos_endpoint": f"http://minio-api-minio.{NAMESPACE}.svc:9000",
@@ -80,13 +80,13 @@ data:
                 "cos_password": "minioadmin",
                 "cos_bucket": "triton-data",
                 "cos_directory": "",
-                "tags": ["kubeflow", "pipelines", "triton", "custom-image"],
+                "tags": ["kubeflow", "pipelines", "openshift-ai", "default"],
                 "engine": "Argo",
                 "auth_type": "NO_AUTHENTICATION",
                 "runtime_type": "KUBEFLOW_PIPELINES",
                 "api_version": "v1",
                 "user_namespace": NAMESPACE,
-                "engine_namespace": NAMESPACE,
+                "engine_namespace": "test-pipeline",
                 "cos_secure": False,
                 "disable_ssl_verification": True,
                 "cos_auth_type": "USER_CREDENTIALS"
@@ -283,4 +283,13 @@ data:
             'description': 'Image standard OpenShift AI pour compatibilité',
             'tags': ['standard', 'fallback', 'python3.11']
         }
-    ] 
+    ]
+    
+    # Configuration spécifique pour l'authentification KFP
+    c.ElyraApp.auth_type = 'NO_AUTHENTICATION'
+    c.ElyraApp.disable_ssl_verification = True
+    
+    # Configuration des pipelines - Utiliser le pipeline server par défaut d'OpenShift AI
+    c.ElyraApp.pipeline_runtime_type = 'KUBEFLOW_PIPELINES'
+    c.ElyraApp.pipeline_engine = 'Argo'
+    c.ElyraApp.pipeline_endpoint = 'https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com' 

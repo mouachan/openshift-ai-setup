@@ -82,9 +82,9 @@ spec:
               value: "kubeflow_pipelines"
             # Configuration Kubeflow
             - name: KF_PIPELINES_ENDPOINT
-              value: "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
+              value: "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             - name: KF_PIPELINES_UI_ENDPOINT
-              value: "https://ds-pipeline-ui-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
+              value: "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             # Configuration Model Registry
             - name: MODEL_REGISTRY_URL
               value: "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
@@ -160,9 +160,9 @@ spec:
             
             cat > "${METADATA_DIR}/runtimes/data_science_pipelines.json" << EOF
             {
-              "display_name": "Data Science Pipelines (Triton Demo)",
+              "display_name": "Data Science Pipelines (OpenShift AI)",
               "metadata": {
-                "api_endpoint": "https://ds-pipeline-${NAMESPACE}-pipelines-${NAMESPACE}.${CLUSTER_DOMAIN}",
+                "api_endpoint": "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
                 "api_username": "",
                 "api_password": "",
                 "cos_endpoint": "http://minio-api.minio.svc:9000",
@@ -170,15 +170,15 @@ spec:
                 "cos_password": "minioadmin",
                 "cos_bucket": "triton-data",
                 "cos_directory": "",
-                "tags": ["kubeflow", "pipelines", "triton", "custom-image"],
+                "tags": ["kubeflow", "pipelines", "openshift-ai", "default"],
                 "engine": "Argo",
-                "auth_type": "KUBERNETES_SERVICE_ACCOUNT_TOKEN",
+                "auth_type": "NO_AUTHENTICATION",
                 "runtime_type": "KUBEFLOW_PIPELINES",
                 "api_version": "v1",
                 "user_namespace": "${NAMESPACE}",
-                "engine_namespace": "${NAMESPACE}",
+                "engine_namespace": "test-pipeline",
                 "cos_secure": false,
-                "disable_ssl_verification": false,
+                "disable_ssl_verification": true,
                 "cos_auth_type": "USER_CREDENTIALS"
               },
               "schema_name": "kfp",
