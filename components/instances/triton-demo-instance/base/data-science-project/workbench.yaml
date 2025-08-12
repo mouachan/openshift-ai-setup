@@ -10,63 +10,21 @@ metadata:
     opendatahub.io/user: mouachan
   annotations:
     notebooks.opendatahub.io/inject-oauth: "true"
-    opendatahub.io/image-display-name: "Standard Data Science"
+    opendatahub.io/image-display-name: "Triton Demo Notebook"
     notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com/projects/triton-demo?notebookLogout=triton-workbench"
     opendatahub.io/accelerator-name: ""
-    openshift.io/description: "Workbench Jupyter pour développement avec image standard data science"
-    openshift.io/display-name: "Triton Demo - Data Science Workbench"
-    notebooks.opendatahub.io/last-image-version-git-commit-selection: "840a528"
-    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2025.1"
+    openshift.io/description: "Workbench Jupyter pour développement avec image personnalisée Triton Demo"
+    openshift.io/display-name: "Triton Demo - Custom Workbench"
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: "2ad78f5"
+    notebooks.opendatahub.io/last-image-selection: "triton-demo-notebook:latest"
     opendatahub.io/hardware-profile-namespace: ""
     notebooks.opendatahub.io/last-size-selection: "Medium"
     opendatahub.io/username: "mouachan"
     opendatahub.io/hardware-profile-name: ""
-    opendatahub.io/workbench-image-namespace: ""
+    opendatahub.io/workbench-image-namespace: "redhat-ods-applications"
 spec:
   template:
     spec:
-      initContainers:
-        - name: init-workbench
-          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
-          command: ["/bin/bash"]
-          args:
-            - -c
-            - |
-              echo "🚀 Initialisation du workbench..."
-              cd /opt/app-root/src
-              
-              # Cloner le repository
-              git clone -b main https://github.com/mouachan/openshift-ai-setup.git /tmp/openshift-ai-setup
-              
-              # Copier la démo Triton
-              cp -r /tmp/openshift-ai-setup/demos/triton-example ./triton-example
-              
-              # Créer les dossiers nécessaires
-              mkdir -p ./triton-example/data
-              mkdir -p ./triton-example/models
-              mkdir -p ./triton-example/notebooks
-              
-              # Copier les modèles pré-entraînés s'ils existent
-              if [ -d "/tmp/openshift-ai-setup/demos/triton-example/models" ]; then
-                cp -r /tmp/openshift-ai-setup/demos/triton-example/models/* ./triton-example/models/ 2>/dev/null || true
-              fi
-              
-              # Créer un fichier de test pour S3
-              echo "Test S3 connection" > ./triton-example/data/test_s3.txt
-              echo "Dataset Iris sera chargé depuis scikit-learn" > ./triton-example/data/README.txt
-              
-              # Nettoyer
-              rm -rf /tmp/openshift-ai-setup
-              
-              # Permissions
-              chmod -R 755 ./triton-example
-              
-              echo "✅ Workbench initialisé avec succès!"
-              echo "📁 Contenu du répertoire:"
-              ls -la ./triton-example/
-          volumeMounts:
-            - mountPath: /opt/app-root/src/
-              name: triton-workbench-storage
       containers:
         - resources:
             limits:
@@ -81,7 +39,7 @@ spec:
               path: /notebook/triton-demo/triton-workbench/api
               port: notebook-port
               scheme: HTTP
-            initialDelaySeconds: 120
+            initialDelaySeconds: 60
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
@@ -92,7 +50,7 @@ spec:
               path: /notebook/triton-demo/triton-workbench/api
               port: notebook-port
               scheme: HTTP
-            initialDelaySeconds: 180
+            initialDelaySeconds: 120
             periodSeconds: 15
             successThreshold: 1
             timeoutSeconds: 5
@@ -105,8 +63,6 @@ spec:
                 --ServerApp.base_url=/notebook/triton-demo/triton-workbench
                 --ServerApp.quit_button=False
                 --ServerApp.tornado_settings={"user":"mouachan","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com","hub_prefix":"/projects/triton-demo"}
-            - name: JUPYTER_IMAGE
-              value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: REQUESTS_CA_BUNDLE
@@ -126,10 +82,10 @@ spec:
               value: "kubeflow_pipelines"
             # Configuration Kubeflow
             - name: KF_PIPELINES_ENDPOINT
-              value: "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster.local"
+              value: "https://ds-pipeline-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             - name: KF_PIPELINES_UI_ENDPOINT
-              value: "https://ds-pipeline-ui-triton-demo-pipelines-triton-demo.apps.cluster.local"
-            # Configuration Model Registry - URL correcte
+              value: "https://ds-pipeline-ui-triton-demo-pipelines-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
+            # Configuration Model Registry
             - name: MODEL_REGISTRY_URL
               value: "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             - name: MODEL_REGISTRY_DATABASE_URL
@@ -152,13 +108,6 @@ spec:
               value: "main"
             - name: GIT_PATH
               value: "demos/triton-example"
-            # Configuration pour l'authentification Kubernetes Service Account
-            # - name: KUBERNETES_SERVICE_ACCOUNT_TOKEN
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: triton-workbench-sa-token
-            #       key: token
-            #       optional: true
           envFrom:
             - secretRef:
                 name: triton-demo-s3-connection
@@ -185,24 +134,20 @@ spec:
             - mountPath: /opt/app-root/elyra-config
               name: elyra-runtime-config
               readOnly: true
-            # Volume mount pour le service account token
-            # - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-            #   name: kube-api-access
-            #   readOnly: true
             # Volume mount pour le cache pip (persistant)
             - mountPath: /opt/app-root/src/.pip-cache
               name: pip-cache
               readOnly: false
-          image: 'quay.io/mouachan/triton-demo-notebook:latest'
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/triton-demo-notebook:latest'
           workingDir: /opt/app-root/src
           command:
           - /bin/bash
           - -c
           args:
           - |
-            # Script de démarrage ultra-rapide avec image pré-configurée
-            echo "🚀 Démarrage Triton Demo Notebook (image optimisée)"
-            echo "📦 Packages pré-installés, configuration express..."
+            # Script de démarrage avec image personnalisée pré-configurée
+            echo "🚀 Démarrage Triton Demo Notebook (image personnalisée)"
+            echo "📦 Tous les packages sont pré-installés dans l'image"
             
             # Variables d'environnement
             NAMESPACE=${KUBERNETES_NAMESPACE:-"triton-demo"}
@@ -215,7 +160,7 @@ spec:
             
             cat > "${METADATA_DIR}/runtimes/data_science_pipelines.json" << EOF
             {
-              "display_name": "Data Science Pipelines (Optimized)",
+              "display_name": "Data Science Pipelines (Triton Demo)",
               "metadata": {
                 "api_endpoint": "https://ds-pipeline-${NAMESPACE}-pipelines-${NAMESPACE}.${CLUSTER_DOMAIN}",
                 "api_username": "",
@@ -225,7 +170,7 @@ spec:
                 "cos_password": "minioadmin",
                 "cos_bucket": "triton-data",
                 "cos_directory": "",
-                "tags": ["kubeflow", "pipelines", "triton", "optimized"],
+                "tags": ["kubeflow", "pipelines", "triton", "custom-image"],
                 "engine": "Argo",
                 "auth_type": "KUBERNETES_SERVICE_ACCOUNT_TOKEN",
                 "runtime_type": "KUBEFLOW_PIPELINES",
@@ -253,7 +198,7 @@ spec:
               fi
             fi
             
-            echo "✅ Configuration terminée en < 5 secondes!"
+            echo "✅ Configuration terminée en < 3 secondes!"
             echo "🚀 Démarrage de Jupyter Lab..."
             
             # Démarrage direct de Jupyter (tous les packages sont pré-installés)
