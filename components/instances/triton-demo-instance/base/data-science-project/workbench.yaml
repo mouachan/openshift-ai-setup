@@ -231,14 +231,9 @@ spec:
         - emptyDir:
             medium: Memory
           name: shm
-        - name: elyra-dsp-details
-          configMap:
-            name: elyra-dsp-details
-            optional: true
+        # Volume pour les certificats CA (optionnel)
         - name: trusted-ca
-          configMap:
-            name: trusted-ca
-            optional: true
+          emptyDir: {}
         - name: oauth-config
           secret:
             defaultMode: 420
