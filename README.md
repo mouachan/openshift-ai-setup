@@ -13,11 +13,12 @@ Ce projet fournit une **configuration complète et production-ready** d'OpenShif
 
 ## ✨ **Fonctionnalités principales**
 
-### 🖥️ **Workbench Personnalisé**
-- **Image notebook personnalisée** avec toutes les bibliothèques ML/AI pré-installées
+### 🖥️ **Workbench Standard RHOAI**
+- **Image standard RHOAI** `s2i-generic-data-science-notebook:2025.1` avec configuration SSL intégrée
 - **Runtime Elyra** configuré pour les pipelines Kubeflow
 - **Interface JupyterLab** avec extensions Elyra pour la gestion des pipelines
 - **Authentification OpenShift** intégrée
+- **Annotations complètes** pour reconnaissance OpenShift AI (pas de tag "Deleted")
 
 ### 🔧 **Pipelines et ML**
 - **Kubeflow Pipelines** via le serveur par défaut d'OpenShift AI
@@ -65,6 +66,17 @@ Ce projet fournit une **configuration complète et production-ready** d'OpenShif
 │  └─────────────┘  └─────────────┘  └─────────────┘        │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## ✅ **État Actuel et Problèmes Résolus**
+
+### **Problèmes Résolus**
+- ✅ **SSL avec KFP Client** : Résolu en utilisant l'image standard RHOAI
+- ✅ **Tag "Deleted"** : Résolu en ajoutant l'annotation `last-image-version-git-commit-selection: 840a528`
+- ✅ **Workbench fonctionnel** : Connexion au pipeline DSPA opérationnelle
+- ✅ **GitOps maintenu** : Toutes les configurations commitées et synchronisées
+
+### **Problème Restant**
+- 🔄 **Configuration Minio par défaut** : Nécessite de passer de HTTPS à HTTP dans la config par défaut d'OpenShift AI
 
 ## 🚀 **Démarrage rapide**
 
