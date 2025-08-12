@@ -16,7 +16,6 @@ resources:
 - pipeline-minio-secret.yaml
 - pipeline-db-secret.yaml
 - model-registry-secret.yaml
-- elyra-runtime-config.yaml
 - pipeline-server.yaml
 
 # Labels communs pour tous les objets

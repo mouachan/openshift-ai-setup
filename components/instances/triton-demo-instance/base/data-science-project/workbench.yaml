@@ -111,9 +111,6 @@ spec:
             - mountPath: /opt/app-root/src/data
               name: s3-connection
               readOnly: false
-            - mountPath: /opt/app-root/elyra-config
-              name: elyra-runtime-config
-              readOnly: true
             # Volume mount pour le cache pip (persistant)
             - mountPath: /opt/app-root/src/.pip-cache
               name: pip-cache
@@ -125,31 +122,13 @@ spec:
           - -c
           args:
           - |
-            # Script de démarrage sécurisé
-            echo "🚀 Démarrage Triton Demo Notebook (version sécurisée)"
+            # Script de démarrage simple
+            echo "🚀 Démarrage Triton Demo Notebook"
             echo "📦 Tous les packages sont pré-installés dans l'image"
-            
-            # Variables d'environnement
-            NAMESPACE=${KUBERNETES_NAMESPACE:-"triton-demo"}
-            
-            # Configuration Elyra depuis le ConfigMap (pas de configuration hardcodée)
-            echo "⚡ Configuration Elyra depuis le ConfigMap..."
-            METADATA_DIR="/opt/app-root/src/.local/share/jupyter/metadata"
-            mkdir -p "${METADATA_DIR}/runtimes"
-            
-            # Exécuter le script d'initialisation du ConfigMap
-            if [ -f "/opt/app-root/elyra-config/init-runtime.py" ]; then
-              echo "🔧 Exécution du script d'initialisation Elyra..."
-              cd /opt/app-root/src
-              python3 /opt/app-root/elyra-config/init-runtime.py
-              echo "✅ Configuration Elyra terminée"
-            else
-              echo "⚠️ Script d'initialisation non trouvé, utilisation de la configuration par défaut"
-            fi
             
             # Clonage du repository si configuré
             if [ -n "${GIT_REPO}" ] && [ -n "${GIT_PATH}" ]; then
-              echo "📂 Clonage express du repository..."
+              echo "📂 Clonage du repository..."
               if [ ! -d ".git" ]; then
                 git clone "${GIT_REPO}" temp_repo 2>/dev/null || echo "⚠️ Clonage échoué"
                 if [ -d "temp_repo/${GIT_PATH}" ]; then
@@ -159,7 +138,7 @@ spec:
               fi
             fi
             
-            echo "✅ Configuration sécurisée terminée!"
+            echo "✅ Configuration terminée!"
             echo "🚀 Démarrage de Jupyter Lab..."
             
             # Démarrage direct de Jupyter (tous les packages sont pré-installés)
@@ -263,10 +242,6 @@ spec:
         # Volume pour la data connection S3
         - name: s3-connection
           emptyDir: {}
-        # Volume pour la configuration Elyra
-        - name: elyra-runtime-config
-          configMap:
-            name: elyra-runtime-config
         # Volume persistant pour le cache pip
         - name: pip-cache
           persistentVolumeClaim:
