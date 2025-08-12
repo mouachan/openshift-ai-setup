@@ -16,6 +16,7 @@ metadata:
     openshift.io/description: "Workbench Jupyter pour développement avec image standard RHOAI"
     openshift.io/display-name: "Triton Demo - Standard RHOAI Workbench"
     notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2025.1"
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: "840a528"
     notebooks.opendatahub.io/last-size-selection: "Medium"
     opendatahub.io/username: "mouachan"
     opendatahub.io/hardware-profile-name: ""
