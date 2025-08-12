@@ -62,7 +62,6 @@ spec:
                 --ServerApp.password=''
                 --ServerApp.base_url=/notebook/triton-demo/triton-workbench
                 --ServerApp.quit_button=False
-                --ServerApp.tornado_settings={"user":"mouachan","hub_host":"","hub_prefix":"/projects/triton-demo"}
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: REQUESTS_CA_BUNDLE
@@ -80,22 +79,6 @@ spec:
               value: "elyra.metadata.file.FileMetadataStore"
             - name: ELYRA_RUNTIME_ENV
               value: "kubeflow_pipelines"
-            # Configuration Model Registry
-            - name: MODEL_REGISTRY_URL
-              value: "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
-            - name: MODEL_REGISTRY_DATABASE_URL
-              value: "mysql://mlmduser:TheBlurstOfTimes@mysql.db-ai.svc.cluster.local:3306/model_registry"
-            # Configuration S3/MinIO externe
-            - name: AWS_ACCESS_KEY_ID
-              value: "accesskey"
-            - name: AWS_SECRET_ACCESS_KEY
-              value: "secretkey"
-            - name: AWS_S3_ENDPOINT
-              value: "minio.db-ai.svc.cluster.local:9000"
-            - name: AWS_S3_BUCKET
-              value: "model-registry"
-            - name: AWS_S3_FORCE_PATH_STYLE
-              value: "true"
             # Configuration Git pour charger le projet
             - name: GIT_REPO
               value: "https://github.com/mouachan/openshift-ai-setup.git"
@@ -106,6 +89,8 @@ spec:
           envFrom:
             - secretRef:
                 name: triton-demo-s3-connection
+            - secretRef:
+                name: triton-demo-model-registry-credentials
           ports:
             - containerPort: 8888
               name: notebook-port
@@ -140,8 +125,8 @@ spec:
           - -c
           args:
           - |
-            # Script de démarrage avec image personnalisée pré-configurée
-            echo "🚀 Démarrage Triton Demo Notebook (image personnalisée)"
+            # Script de démarrage sécurisé
+            echo "🚀 Démarrage Triton Demo Notebook (version sécurisée)"
             echo "📦 Tous les packages sont pré-installés dans l'image"
             
             # Variables d'environnement
@@ -174,7 +159,7 @@ spec:
               fi
             fi
             
-            echo "✅ Configuration terminée!"
+            echo "✅ Configuration sécurisée terminée!"
             echo "🚀 Démarrage de Jupyter Lab..."
             
             # Démarrage direct de Jupyter (tous les packages sont pré-installés)
@@ -242,7 +227,7 @@ spec:
             - '--client-secret-file=/etc/oauth/client/secret'
             - '--scope=user:info user:check-access'
             - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"triton-workbench","namespace":"$(NAMESPACE)"}'
-            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com/projects/triton-demo?notebookLogout=triton-workbench'
+            - '--logout-url=/projects/triton-demo?notebookLogout=triton-workbench'
       enableServiceLinks: false
       serviceAccountName: triton-workbench-sa
       volumes:

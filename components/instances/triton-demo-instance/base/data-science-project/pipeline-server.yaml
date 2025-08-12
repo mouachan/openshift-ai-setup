@@ -12,17 +12,18 @@ spec:
     mariaDB:
       deploy: true
       pvcSize: 10Gi
+      pipelineDBName: mlpipeline
   dspVersion: v2
   objectStorage:
     externalStorage:
       bucket: mlpipeline
-      host: minio-api-minio.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com
-      port: "443"
+      host: minio-api.minio.svc
+      port: "9000"
       s3CredentialsSecret:
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
         secretName: dashboard-dspa-secret
-      scheme: https
+      scheme: http
   persistenceAgent:
     deploy: true
   scheduledWorkflow:
