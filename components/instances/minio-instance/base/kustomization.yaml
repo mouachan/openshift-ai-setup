@@ -10,6 +10,7 @@ resources:
 - namespace.yaml
 - minio-deployment.yaml
 - minio-service.yaml
+- minio-routes.yaml
 - minio-pvc.yaml
 - minio-secret.yaml
 - minio-serviceaccount.yaml

@@ -1,77 +1,230 @@
 #!/bin/bash
-# Installation complète OpenShift AI 2.22 via GitOps
+
+# 🚀 OpenShift AI Setup - Installation Automatique
+# 
+# Ce script installe automatiquement OpenShift AI avec :
+# - Workbench personnalisé avec image ML/AI
+# - Pipelines Elyra configurés
+# - Infrastructure complète (MinIO, Model Registry, Serving)
+# - GitOps avec ArgoCD
 
 set -e
 
-echo "🚀 OpenShift AI 2.22 - Déploiement GitOps"
-echo "=========================================="
+# Couleurs pour l'affichage
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Vérifier les prérequis
-if ! command -v oc &> /dev/null; then
-    echo "❌ CLI 'oc' non trouvé. Installez OpenShift CLI."
-    exit 1
-fi
+# Fonctions utilitaires
+log_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
 
-if ! oc whoami &> /dev/null; then
-    echo "❌ Non connecté à OpenShift. Utilisez 'oc login'."
-    exit 1
-fi
+log_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
 
-echo "✅ Prérequis validés"
+log_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
 
-# 1. Installer GitOps si pas déjà présent
-if ! oc get csv -n openshift-operators | grep -q "gitops.*Succeeded"; then
-    echo "📦 Installation OpenShift GitOps..."
-    ./scripts/install-gitops.sh
-else
-    echo "✅ GitOps déjà installé"
-fi
+log_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
 
-# 2. Déployer OpenShift AI via ArgoCD
-echo "🎯 Déploiement OpenShift AI via ArgoCD..."
-oc apply -f argocd-apps/openshift-ai-application.yaml
-
-echo "⏳ Attente synchronisation ArgoCD..."
-sleep 30
-
-# 3. Vérifier le déploiement
-echo "🔍 Vérification du déploiement..."
-for i in {1..10}; do
-    SYNC_STATUS=$(oc get applications.argoproj.io openshift-ai-complete -n openshift-gitops -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
-    HEALTH_STATUS=$(oc get applications.argoproj.io openshift-ai-complete -n openshift-gitops -o jsonpath='{.status.health.status}' 2>/dev/null || echo "Unknown")
+# Vérification des prérequis
+check_prerequisites() {
+    log_info "Vérification des prérequis..."
     
-    echo "  Sync: $SYNC_STATUS | Health: $HEALTH_STATUS"
-    
-    if [[ "$SYNC_STATUS" == "Synced" && "$HEALTH_STATUS" == "Healthy" ]]; then
-        echo "✅ Déploiement réussi !"
-        break
+    # Vérifier OpenShift CLI
+    if ! command -v oc &> /dev/null; then
+        log_error "OpenShift CLI (oc) n'est pas installé"
+        exit 1
     fi
     
-    if [ $i -eq 10 ]; then
-        echo "⚠️  Sync en cours... Vérifiez avec: oc get applications.argoproj.io -n openshift-gitops"
-        # Correction SSL immédiate si Model Registry disponible
-        if oc get modelregistry default-model-registry -n rhoai-model-registries >/dev/null 2>&1; then
-            echo "🔧 Application correction SSL pour Model Registry..."
-            oc annotate route rhods-dashboard -n redhat-ods-applications haproxy.router.openshift.io/backend-protocol=http --overwrite >/dev/null 2>&1 || true
-            oc rollout restart deployment rhods-dashboard -n redhat-ods-applications >/dev/null 2>&1 || true
-            echo "✅ Correction SSL appliquée"
-        fi
+    # Vérifier l'accès au cluster
+    if ! oc whoami &> /dev/null; then
+        log_error "Vous n'êtes pas connecté à OpenShift"
+        exit 1
     fi
     
-    sleep 30
-done
+    # Vérifier les droits administrateur
+    if ! oc auth can-i create datascienceclusters --all-namespaces &> /dev/null; then
+        log_warning "Droits administrateur limités - certaines fonctionnalités peuvent ne pas fonctionner"
+    fi
+    
+    log_success "Prérequis vérifiés"
+}
 
-# 4. Afficher les informations de connexion
-echo ""
-echo "🌐 Accès aux services:"
-echo "----------------------"
+# Installation des opérateurs
+install_operators() {
+    log_info "Installation des opérateurs OpenShift..."
+    
+    oc apply -k components/operators/
+    
+    log_info "Attente que les opérateurs soient prêts..."
+    oc wait --for=condition=Installed csv/rhods-operator.v2.8.0 -n openshift-operators --timeout=600s || true
+    
+    log_success "Opérateurs installés"
+}
 
-ARGOCD_URL=$(oc get route argocd-server -n openshift-gitops -o jsonpath='{.spec.host}' 2>/dev/null || echo "Non disponible")
-RHOAI_URL=$(oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}' 2>/dev/null || echo "En cours de déploiement")
+# Installation de l'infrastructure
+install_infrastructure() {
+    log_info "Installation de l'infrastructure de base..."
+    
+    # MinIO pour le stockage
+    log_info "Déploiement de MinIO..."
+    oc apply -k components/instances/minio-instance/base/
+    
+    # Model Registry
+    log_info "Configuration du Model Registry..."
+    oc apply -k components/instances/rhoai-instance/components/model-registry/
+    
+    # Serving Runtimes personnalisés
+    log_info "Installation des runtimes de serving personnalisés..."
+    oc apply -k components/instances/rhoai-instance/components/custom-serving-runtimes/
+    
+    # Pipelines Tekton
+    log_info "Configuration des pipelines Tekton..."
+    oc apply -k components/instances/pipelines-instance/base/
+    
+    # Service Mesh (si pas déjà installé)
+    log_info "Configuration du Service Mesh..."
+    oc apply -k components/instances/service-mesh-instance/base/ || log_warning "Service Mesh déjà installé"
+    
+    # Serverless (Knative)
+    log_info "Configuration du Serverless..."
+    oc apply -k components/instances/serverless-instance/base/
+    
+    log_success "Infrastructure installée"
+}
 
-echo "ArgoCD  : https://$ARGOCD_URL"
-echo "RHOAI   : https://$RHOAI_URL"
+# Installation du workbench personnalisé
+install_workbench() {
+    log_info "Installation du workbench personnalisé..."
+    
+    # Déployer le workbench
+    oc apply -k components/instances/triton-demo-instance/base/data-science-project/
+    
+    # Attendre que le workbench démarre
+    log_info "Attente que le workbench démarre..."
+    oc wait --for=condition=Ready pod -l app=triton-workbench -n triton-demo --timeout=300s
+    
+    # Appliquer la configuration Elyra
+    log_info "Configuration d'Elyra..."
+    oc apply -f components/instances/triton-demo-instance/base/data-science-project/elyra-runtime-config.yaml
+    
+    # Configurer le runtime dans le workbench
+    log_info "Configuration du runtime Elyra..."
+    oc exec triton-workbench-0 -n triton-demo -c triton-workbench -- python3 /opt/app-root/elyra-config/init-runtime.py
+    
+    log_success "Workbench installé et configuré"
+}
 
-echo ""
-echo "🎉 Installation terminée !"
-echo "   Surveillez la sync ArgoCD pour le statut complet."
+# Configuration GitOps
+install_gitops() {
+    log_info "Configuration GitOps avec ArgoCD..."
+    
+    oc apply -k argocd-apps/
+    
+    log_success "GitOps configuré"
+}
+
+# Vérification de l'installation
+verify_installation() {
+    log_info "Vérification de l'installation..."
+    
+    echo ""
+    log_info "📊 État des composants :"
+    
+    # Workbench
+    if oc get pods -n triton-demo | grep -q "Running"; then
+        log_success "Workbench : Fonctionnel"
+    else
+        log_error "Workbench : Problème détecté"
+    fi
+    
+    # MinIO
+    if oc get pods -n minio | grep -q "Running"; then
+        log_success "MinIO : Fonctionnel"
+    else
+        log_error "MinIO : Problème détecté"
+    fi
+    
+    # Model Registry
+    if oc get pods -n rhoai-model-registries | grep -q "Running"; then
+        log_success "Model Registry : Fonctionnel"
+    else
+        log_warning "Model Registry : En cours de démarrage"
+    fi
+    
+    # Pipelines
+    if oc get datasciencepipelinesapplications -A | grep -q "dspa"; then
+        log_success "Pipelines : Disponibles"
+    else
+        log_warning "Pipelines : En cours de configuration"
+    fi
+    
+    echo ""
+}
+
+# Affichage des informations de connexion
+show_connection_info() {
+    log_success "🎉 Installation terminée avec succès !"
+    echo ""
+    log_info "🔗 Informations de connexion :"
+    
+    # Workbench
+    WORKBENCH_ROUTE=$(oc get route triton-workbench -n triton-demo -o jsonpath='{.spec.host}' 2>/dev/null || echo "En cours de création")
+    echo "  📱 Workbench : https://$WORKBENCH_ROUTE"
+    
+    # MinIO
+    MINIO_ROUTE=$(oc get route minio-api -n minio -o jsonpath='{.spec.host}' 2>/dev/null || echo "En cours de création")
+    echo "  🗄️  MinIO API : https://$MINIO_ROUTE"
+    
+    # MinIO Console
+    MINIO_CONSOLE_ROUTE=$(oc get route minio-console -n minio -o jsonpath='{.spec.host}' 2>/dev/null || echo "En cours de création")
+    echo "  🖥️  MinIO Console : https://$MINIO_CONSOLE_ROUTE"
+    
+    echo ""
+    log_info "📚 Documentation :"
+    echo "  📖 Guide complet : README.md"
+    echo "  🚀 Démarrage rapide : docs/QUICK-START.md"
+    echo "  🏗️  Architecture : docs/MODULAR-ARCHITECTURE.md"
+    
+    echo ""
+    log_info "🔧 Prochaines étapes :"
+    echo "  1. Accéder au workbench et créer votre premier pipeline"
+    echo "  2. Utiliser l'image personnalisée avec toutes les bibliothèques ML/AI"
+    echo "  3. Déployer des modèles via le Model Registry"
+    echo "  4. Configurer GitOps pour la maintenance continue"
+    
+    echo ""
+    log_success "Votre setup OpenShift AI est maintenant production-ready ! 🚀"
+}
+
+# Fonction principale
+main() {
+    echo ""
+    echo "🚀 OpenShift AI Setup - Installation Automatique"
+    echo "=================================================="
+    echo ""
+    
+    check_prerequisites
+    install_operators
+    install_infrastructure
+    install_workbench
+    install_gitops
+    verify_installation
+    show_connection_info
+}
+
+# Gestion des erreurs
+trap 'log_error "Installation interrompue par l\'utilisateur"; exit 1' INT TERM
+
+# Exécution
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

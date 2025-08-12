@@ -1,0 +1,49 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio-api
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: openshift-ai
+  annotations:
+    openshift.io/display-name: "MinIO API"
+    openshift.io/description: "Route externe pour l'API MinIO S3"
+spec:
+  to:
+    kind: Service
+    name: minio-api
+    weight: 100
+  port:
+    targetPort: 9000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio-console
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: openshift-ai
+  annotations:
+    openshift.io/display-name: "MinIO Console"
+    openshift.io/description: "Interface web MinIO pour administration"
+spec:
+  to:
+    kind: Service
+    name: minio-api
+    weight: 100
+  port:
+    targetPort: 9001
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

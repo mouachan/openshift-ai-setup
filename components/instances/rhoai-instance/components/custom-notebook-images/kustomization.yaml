@@ -8,7 +8,7 @@ metadata:
 
 resources:
   - triton-demo-image.yaml
-  - triton-demo-imagestream.yaml
+  - triton-demo-imagestream-v2.yaml
 
 commonLabels:
   app.kubernetes.io/part-of: openshift-ai-custom-images

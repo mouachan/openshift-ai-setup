@@ -9,7 +9,7 @@ metadata:
     opendatahub.io/notebook-image: "true"
     app.kubernetes.io/name: triton-demo-notebook
     app.kubernetes.io/component: notebook-image
-    app.kubernetes.io/part-of: openshift-ai-demo
+    app.kubernetes.io/part-of: openshift-ai-custom-images
     app.kubernetes.io/managed-by: gitops
   annotations:
     openshift.io/display-name: "Triton Demo Notebook (Optimized)"

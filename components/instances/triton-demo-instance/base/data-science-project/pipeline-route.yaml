@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ds-pipeline-dspa
+  namespace: triton-demo
+spec:
+  host: ds-pipeline-dspa-triton-demo.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com
+  port:
+    targetPort: 8888
+  to:
+    kind: Service
+    name: ds-pipeline-dspa
+    weight: 100
+  tls:
+    termination: reencrypt
+    insecureEdgeTerminationPolicy: Redirect

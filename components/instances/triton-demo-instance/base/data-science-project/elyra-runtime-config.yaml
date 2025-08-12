@@ -52,7 +52,10 @@ data:
     # Configuration basée sur le modèle Data Science Project
     ELYRA_METADATA_DIR = os.path.expanduser("~/.local/share/jupyter/metadata")
     NAMESPACE = "triton-demo"
-    CLUSTER_DOMAIN = "apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
+    
+    # Utiliser les services internes au lieu des routes externes
+    PIPELINE_SERVICE = "ds-pipeline-dspa.triton-demo.svc:8888"
+    MINIO_SERVICE = "minio-api.minio.svc:9000"
 
     def ensure_elyra_dirs():
         """Crée les répertoires Elyra nécessaires"""
@@ -68,25 +71,25 @@ data:
             print(f"✓ Répertoire créé: {dir_path}")
 
     def create_kubeflow_runtime():
-        """Crée la configuration runtime Kubeflow Pipelines comme OpenShift AI"""
+        """Crée la configuration runtime Kubeflow Pipelines avec services internes"""
         return {
-            "display_name": "Data Science Pipelines (OpenShift AI)",
+            "display_name": "Data Science Pipelines (Triton Demo)",
             "metadata": {
-                "api_endpoint": "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
+                "api_endpoint": f"https://{PIPELINE_SERVICE}",
                 "api_username": "",
                 "api_password": "",
-                "cos_endpoint": f"http://minio-api-minio.{NAMESPACE}.svc:9000",
-                "cos_username": "minioadmin",
-                "cos_password": "minioadmin",
-                "cos_bucket": "triton-data",
+                "cos_endpoint": f"http://{MINIO_SERVICE}",
+                "cos_username": "minio",
+                "cos_password": "minio123",
+                "cos_bucket": "mlpipeline",
                 "cos_directory": "",
-                "tags": ["kubeflow", "pipelines", "openshift-ai", "default"],
+                "tags": ["kubeflow", "pipelines", "openshift-ai", "triton-demo"],
                 "engine": "Argo",
                 "auth_type": "NO_AUTHENTICATION",
                 "runtime_type": "KUBEFLOW_PIPELINES",
                 "api_version": "v1",
                 "user_namespace": NAMESPACE,
-                "engine_namespace": "test-pipeline",
+                "engine_namespace": NAMESPACE,
                 "cos_secure": False,
                 "disable_ssl_verification": True,
                 "cos_auth_type": "USER_CREDENTIALS"
@@ -167,14 +170,14 @@ data:
             return False
 
     def main():
-        """Configuration principale du runtime comme OpenShift AI"""
-        print("🔧 Configuration automatique du runtime Elyra (méthode OpenShift AI)")
+        """Configuration principale du runtime avec services internes"""
+        print("🔧 Configuration automatique du runtime Elyra (services internes)")
         print("=" * 70)
         
         # Créer les répertoires nécessaires
         ensure_elyra_dirs()
         
-        # Créer le runtime Kubeflow comme OpenShift AI
+        # Créer le runtime Kubeflow avec services internes
         runtime_config = create_kubeflow_runtime()
         
         # Créer les runtime images
@@ -191,6 +194,7 @@ data:
             print(f"🏷️ Nom du runtime: {runtime_config['display_name']}")
             print(f"⚙️ Engine: {runtime_config['metadata']['engine']}")
             print(f"🔐 Auth Type: {runtime_config['metadata']['auth_type']}")
+            print(f"🏢 Namespace: {runtime_config['metadata']['user_namespace']}")
         
         # Sauvegarder les runtime images
         if save_runtime_images(runtime_images):
@@ -258,14 +262,14 @@ data:
     c.ElyraApp.enable_pipeline_editing = True
     c.ElyraApp.runtime_env = 'kubeflow_pipelines'
     
-    # Configuration des data connections
+    # Configuration des data connections avec services internes
     c.ElyraApp.data_connections = {
         'triton-data-connection': {
             'type': 's3',
-            'endpoint': 'http://minio-api-minio.svc:9000',
-            'access_key': 'minioadmin',
-            'secret_key': 'minioadmin',
-            'bucket': 'triton-data'
+            'endpoint': 'http://minio-api.minio.svc:9000',
+            'access_key': 'minio',
+            'secret_key': 'minio123',
+            'bucket': 'mlpipeline'
         }
     }
     
@@ -289,7 +293,7 @@ data:
     c.ElyraApp.auth_type = 'NO_AUTHENTICATION'
     c.ElyraApp.disable_ssl_verification = True
     
-    # Configuration des pipelines - Utiliser le pipeline server par défaut d'OpenShift AI
+    # Configuration des pipelines - Utiliser le pipeline server local avec services internes
     c.ElyraApp.pipeline_runtime_type = 'KUBEFLOW_PIPELINES'
     c.ElyraApp.pipeline_engine = 'Argo'
-    c.ElyraApp.pipeline_endpoint = 'https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com' 
+    c.ElyraApp.pipeline_endpoint = 'https://ds-pipeline-dspa.triton-demo.svc:8888' 

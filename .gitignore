@@ -1,28 +1,63 @@
-# Fichiers temporaires
-/tmp/
-*.tmp
-*.bak
+# 🚀 OpenShift AI Setup - .gitignore
 
-# Fichiers de logs
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs et fichiers temporaires
 *.log
+*.tmp
+*.temp
+logs/
+temp/
 
 # Fichiers de sauvegarde
-backup/
+backups/
 *.backup
-.backup-*/
-.backup-old-structure/
-.backup-complex/
+*.bak
 
-# Fichiers sensibles (ne jamais committer)
+# Fichiers de configuration locale
+.env
+.env.local
+.env.*.local
+config.local.yaml
+
+# Fichiers de cache
+.cache/
+*.cache
+
+# Fichiers de build
+build/
+dist/
+*.tar.gz
+*.zip
+
+# Fichiers de données
+data/
+*.csv
+*.json
+*.sqlite
+
+# Fichiers de secrets (ne jamais commiter)
 secrets/
 *.key
 *.pem
+*.crt
+*.p12
 
-# IDE
-.vscode/settings.json
+# Fichiers de test
+test-results/
+coverage/
+*.test
+
+# Fichiers IDE
+.vscode/
 .idea/
+*.sublime-*
 
-# OS
-.DS_Store
-Thumbs.db
-htpasswd
+# Fichiers de déploiement temporaires
+*.deployed
+*.installed

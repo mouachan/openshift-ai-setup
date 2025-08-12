@@ -11,7 +11,7 @@ metadata:
   annotations:
     notebooks.opendatahub.io/inject-oauth: "true"
     opendatahub.io/image-display-name: "Triton Demo Notebook"
-    notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com/projects/triton-demo?notebookLogout=triton-workbench"
+    notebooks.opendatahub.io/oauth-logout-url: "/projects/triton-demo?notebookLogout=triton-workbench"
     opendatahub.io/accelerator-name: ""
     openshift.io/description: "Workbench Jupyter pour développement avec image personnalisée Triton Demo"
     openshift.io/display-name: "Triton Demo - Custom Workbench"
@@ -62,7 +62,7 @@ spec:
                 --ServerApp.password=''
                 --ServerApp.base_url=/notebook/triton-demo/triton-workbench
                 --ServerApp.quit_button=False
-                --ServerApp.tornado_settings={"user":"mouachan","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com","hub_prefix":"/projects/triton-demo"}
+                --ServerApp.tornado_settings={"user":"mouachan","hub_host":"","hub_prefix":"/projects/triton-demo"}
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: REQUESTS_CA_BUNDLE
@@ -80,11 +80,6 @@ spec:
               value: "elyra.metadata.file.FileMetadataStore"
             - name: ELYRA_RUNTIME_ENV
               value: "kubeflow_pipelines"
-            # Configuration Kubeflow
-            - name: KF_PIPELINES_ENDPOINT
-              value: "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
-            - name: KF_PIPELINES_UI_ENDPOINT
-              value: "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             # Configuration Model Registry
             - name: MODEL_REGISTRY_URL
               value: "https://modelregistry-rest.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
@@ -151,40 +146,21 @@ spec:
             
             # Variables d'environnement
             NAMESPACE=${KUBERNETES_NAMESPACE:-"triton-demo"}
-            CLUSTER_DOMAIN="apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com"
             
-            # Configuration express Elyra (< 1 seconde)
-            echo "⚡ Configuration express du runtime Elyra..."
+            # Configuration Elyra depuis le ConfigMap (pas de configuration hardcodée)
+            echo "⚡ Configuration Elyra depuis le ConfigMap..."
             METADATA_DIR="/opt/app-root/src/.local/share/jupyter/metadata"
             mkdir -p "${METADATA_DIR}/runtimes"
             
-            cat > "${METADATA_DIR}/runtimes/data_science_pipelines.json" << EOF
-            {
-              "display_name": "Data Science Pipelines (OpenShift AI)",
-              "metadata": {
-                "api_endpoint": "https://ds-pipeline-dspa-test-pipeline.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com",
-                "api_username": "",
-                "api_password": "",
-                "cos_endpoint": "http://minio-api.minio.svc:9000",
-                "cos_username": "minioadmin",
-                "cos_password": "minioadmin",
-                "cos_bucket": "triton-data",
-                "cos_directory": "",
-                "tags": ["kubeflow", "pipelines", "openshift-ai", "default"],
-                "engine": "Argo",
-                "auth_type": "NO_AUTHENTICATION",
-                "runtime_type": "KUBEFLOW_PIPELINES",
-                "api_version": "v1",
-                "user_namespace": "${NAMESPACE}",
-                "engine_namespace": "test-pipeline",
-                "cos_secure": false,
-                "disable_ssl_verification": true,
-                "cos_auth_type": "USER_CREDENTIALS"
-              },
-              "schema_name": "kfp",
-              "name": "data_science_pipelines"
-            }
-            EOF
+            # Exécuter le script d'initialisation du ConfigMap
+            if [ -f "/opt/app-root/elyra-config/init-runtime.py" ]; then
+              echo "🔧 Exécution du script d'initialisation Elyra..."
+              cd /opt/app-root/src
+              python3 /opt/app-root/elyra-config/init-runtime.py
+              echo "✅ Configuration Elyra terminée"
+            else
+              echo "⚠️ Script d'initialisation non trouvé, utilisation de la configuration par défaut"
+            fi
             
             # Clonage du repository si configuré
             if [ -n "${GIT_REPO}" ] && [ -n "${GIT_PATH}" ]; then
@@ -198,7 +174,7 @@ spec:
               fi
             fi
             
-            echo "✅ Configuration terminée en < 3 secondes!"
+            echo "✅ Configuration terminée!"
             echo "🚀 Démarrage de Jupyter Lab..."
             
             # Démarrage direct de Jupyter (tous les packages sont pré-installés)

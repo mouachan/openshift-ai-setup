@@ -1,72 +1,29 @@
 apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
 kind: DataSciencePipelinesApplication
 metadata:
-  name: triton-demo-pipelines
+  name: dspa
   namespace: triton-demo
-  labels:
-    app.kubernetes.io/name: triton-demo-pipelines
-    app.kubernetes.io/component: pipeline
-    app.kubernetes.io/part-of: openshift-ai-demo
-    app.kubernetes.io/managed-by: gitops
-    demo.openshift.ai/type: triton-inference
-  annotations:
-    openshift.io/display-name: "Triton Demo - Pipeline Server"
-    openshift.io/description: "Serveur de pipelines Kubeflow pour la démo Triton"
 spec:
-  # Configuration du serveur de pipelines
   apiServer:
-    caBundleFileMountPath: ""
-    caBundleFileName: ""
     deploy: true
-    # Exposition de l'API server via route externe (requis pour Elyra)
-    enableExternalRoute: true
-    artifactSignedURLExpirySeconds: 60
-    enableSamplePipeline: false
-    managedPipelines:
-      instructLab:
-        state: Removed
-    # OAuth désactivé pour permettre l'auth directe depuis workbench
-    enableOauth: false
-    cacheEnabled: true
-    pipelineStore: database
-  
-  # Configuration de la base de données
+    enableOauth: true
+    enableSamplePipeline: true
   database:
-    disableHealthCheck: false
     mariaDB:
       deploy: true
-      pipelineDBName: "mlpipeline"
-      pvcSize: "10Gi"
-      username: "mlpipeline"
-  
-  # Configuration du stockage d'objets (MinIO externe)
+      pvcSize: 10Gi
+  dspVersion: v2
   objectStorage:
-    disableHealthCheck: false
-    enableExternalRoute: false
     externalStorage:
-      basePath: ""
-      bucket: "mlpipeline"
-      host: "minio-api.minio.svc.cluster.local:9000"
-      port: ""
-      region: "us-east-1"
+      bucket: mlpipeline
+      host: minio-api-minio.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com
+      port: "443"
       s3CredentialsSecret:
-        accessKey: "accesskey"
-        secretKey: "secretkey"
-        secretName: "mlpipeline-minio-artifact"
-      scheme: "http"
-  
-  # Configuration du persistence agent
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+        secretName: dashboard-dspa-secret
+      scheme: https
   persistenceAgent:
     deploy: true
-    numWorkers: 2
-  
-  # Configuration du planificateur de workflows
   scheduledWorkflow:
-    cronScheduleTimezone: "UTC"
     deploy: true
-  
-  # Configuration TLS
-  podToPodTLS: true
-  
-  # Version DSP
-  dspVersion: "v2"
