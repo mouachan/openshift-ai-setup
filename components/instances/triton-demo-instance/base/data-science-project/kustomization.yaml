@@ -10,11 +10,12 @@ namespace: triton-demo
 
 resources:
 - namespace.yaml
-- workbench.yaml
+- workbench-secure.yaml
 - storage-config.yaml
 - s3-connection-secret.yaml
 - pipeline-minio-secret.yaml
 - pipeline-db-secret.yaml
+- model-registry-secret.yaml
 - elyra-runtime-config.yaml
 - pipeline-server.yaml
 - pipeline-route.yaml
