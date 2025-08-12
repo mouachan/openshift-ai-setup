@@ -7,18 +7,22 @@ spec:
   apiServer:
     deploy: true
     enableOauth: true
-    enableSamplePipeline: true
+    enableSamplePipeline: false
+    artifactSignedURLExpirySeconds: 60
+    cacheEnabled: true
+    pipelineStore: database
   database:
     mariaDB:
       deploy: true
       pvcSize: 10Gi
       pipelineDBName: mlpipeline
+      username: mlpipeline
   dspVersion: v2
   objectStorage:
     externalStorage:
       bucket: mlpipeline
-      host: minio-api.minio.svc
-      port: "9000"
+      host: minio-api.minio.svc:9000
+      region: us-east-1
       s3CredentialsSecret:
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
@@ -26,5 +30,8 @@ spec:
       scheme: http
   persistenceAgent:
     deploy: true
+    numWorkers: 2
+  podToPodTLS: true
   scheduledWorkflow:
     deploy: true
+    cronScheduleTimezone: UTC

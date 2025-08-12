@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elyra-dsp-details
+  namespace: triton-demo
+data:
+  runtime-images.yaml: |
+    runtime-images:
+      - name: "Kubeflow Pipelines"
+        image: "image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1"
+        description: "Runtime Kubeflow Pipelines pour Triton Demo (Standard RHOAI)"
+        metadata:
+          display_name: "Kubeflow Pipelines"
+          api_endpoint: "https://ds-pipeline-dspa.triton-demo.svc:8443"
+          auth_type: "NO_AUTHENTICATION"
+          cos_endpoint: "minio-api.minio.svc:9000"
+          cos_bucket: "mlpipeline"
+          cos_username: "minio"
+          cos_password: "minio123"
+          cos_auth_type: "USERNAME_PASSWORD"
+          tags: ["kubeflow", "pipelines", "triton", "standard-rhoai"]

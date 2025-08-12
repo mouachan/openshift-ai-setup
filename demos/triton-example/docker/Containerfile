@@ -1,62 +1,25 @@
-# Triton Demo Optimized Notebook Image v2.0 - Simplifié
-# Base: UBI9 Python 3.11 avec packages essentiels
-# Target: quay.io/mouachan/triton-demo-notebook:latest
+# Triton Demo Notebook Image - Basé sur OpenDataHub officiel
+# Utilise les images officielles de Quay.io
 
-FROM registry.redhat.io/ubi9/python-311:latest
+FROM quay.io/opendatahub/workbench-images:latest
 
 LABEL name="triton-demo-notebook" \
-      version="2.0.0" \
-      description="Optimized notebook image with Jupyter, Elyra, and ML packages" \
-      maintainer="mouachan" \
-      vendor="OpenShift AI Demo" \
-      io.k8s.description="Notebook image with Jupyter, Elyra, KFP, and ML packages" \
-      io.openshift.expose-services="8888:http"
+      version="4.0.0" \
+      description="Notebook image basé sur OpenDataHub officiel" \
+      maintainer="mouachan"
 
 USER root
 
-# Installation des outils système
-RUN dnf install -y --allowerasing \
-        curl \
-        wget \
-        git && \
-    dnf clean all && \
-    rm -rf /var/cache/dnf
+# Installation des packages supplémentaires nécessaires
+RUN pip install --no-cache-dir \
+        "kfp>=2.0.0" \
+        "psycopg2-binary>=2.9.0" \
+        "pymongo>=4.0.0"
 
 USER 1001
-
-# Configuration optimisée
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# Installation en une seule étape pour éviter les conflits
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir \
-        "jupyter>=1.0.0" \
-        "jupyterlab>=3.4.0,<4.0" \
-        "notebook>=6.4.0,<7.0" \
-        "elyra>=3.15.0" \
-        "numpy>=1.24.0" \
-        "pandas>=2.0.0" \
-        "scikit-learn>=1.3.0" \
-        "matplotlib>=3.7.0" \
-        "seaborn>=0.12.0" \
-        "boto3>=1.28.0" \
-        "minio>=7.1.0" \
-        "urllib3>=1.26.2,<2.0" \
-        "pydantic>=1.10.0,<2.0" || \
-    echo "Certains packages ont échoué, continuons..."
-
-# Packages optionnels qui peuvent échouer
-RUN pip install --no-cache-dir "tritonclient[http]>=2.30.0" || \
-    echo "Triton client optionnel non installé"
-
-# Test simple des packages essentiels
-RUN python -c "import jupyter, jupyterlab, elyra, numpy, pandas, sklearn, matplotlib; print('✅ Packages principaux OK')" || \
-    echo "❌ Problème avec les packages principaux"
 
 # Configuration finale
 WORKDIR /opt/app-root/src
 EXPOSE 8888
 
-# Utiliser la commande par défaut héritée de l'image de base
+# Utiliser la commande par défaut de l'image de base

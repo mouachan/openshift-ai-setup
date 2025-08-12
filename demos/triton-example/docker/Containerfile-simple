@@ -1,0 +1,49 @@
+# Triton Demo Notebook Image - Version Ultra-Simplifiée
+# Base: UBI9 Python 3.11 avec packages essentiels uniquement
+# Target: quay.io/mouachan/triton-demo-notebook:simple
+
+FROM registry.redhat.io/ubi9/python-311:latest
+
+LABEL name="triton-demo-notebook-simple" \
+      version="3.0.0" \
+      description="Notebook image simplifiée avec Jupyter et packages ML essentiels" \
+      maintainer="mouachan" \
+      vendor="OpenShift AI Demo"
+
+USER root
+
+# Installation des outils système essentiels uniquement
+RUN dnf install -y --allowerasing \
+        curl \
+        git && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
+
+USER 1001
+
+# Configuration minimale
+ENV PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Installation des packages essentiels uniquement
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+        "jupyterlab>=4.0.0" \
+        "notebook>=7.0.0" \
+        "numpy" \
+        "pandas" \
+        "scikit-learn" \
+        "matplotlib" \
+        "seaborn" \
+        "requests" \
+        "boto3" \
+        "minio"
+
+# Test simple des packages essentiels
+RUN python -c "import jupyterlab, numpy, pandas, sklearn, matplotlib; print('✅ Packages essentiels OK')"
+
+# Configuration finale
+WORKDIR /opt/app-root/src
+EXPOSE 8888
+
+# Utiliser la commande par défaut héritée de l'image de base

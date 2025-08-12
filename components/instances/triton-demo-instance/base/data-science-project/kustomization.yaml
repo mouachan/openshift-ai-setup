@@ -17,6 +17,8 @@ resources:
 - pipeline-db-secret.yaml
 - model-registry-secret.yaml
 - pipeline-server.yaml
+- elyra-dsp-details-configmap.yaml
+- trusted-ca-configmap.yaml
 
 # Labels communs pour tous les objets
 labels:

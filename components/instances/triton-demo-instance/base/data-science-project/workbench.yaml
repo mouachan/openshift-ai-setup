@@ -13,11 +13,9 @@ metadata:
     opendatahub.io/image-display-name: "Triton Demo Notebook"
     notebooks.opendatahub.io/oauth-logout-url: "/projects/triton-demo?notebookLogout=triton-workbench"
     opendatahub.io/accelerator-name: ""
-    openshift.io/description: "Workbench Jupyter pour développement avec image personnalisée Triton Demo"
-    openshift.io/display-name: "Triton Demo - Custom Workbench"
-    notebooks.opendatahub.io/last-image-version-git-commit-selection: "2ad78f5"
-    notebooks.opendatahub.io/last-image-selection: "triton-demo-notebook:latest"
-    opendatahub.io/hardware-profile-namespace: ""
+    openshift.io/description: "Workbench Jupyter pour développement avec image standard RHOAI"
+    openshift.io/display-name: "Triton Demo - Standard RHOAI Workbench"
+    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2025.1"
     notebooks.opendatahub.io/last-size-selection: "Medium"
     opendatahub.io/username: "mouachan"
     opendatahub.io/hardware-profile-name: ""
@@ -34,26 +32,26 @@ spec:
               cpu: '3'
               memory: 24Gi
           readinessProbe:
-            failureThreshold: 10
+            failureThreshold: 3
             httpGet:
               path: /notebook/triton-demo/triton-workbench/api
               port: notebook-port
               scheme: HTTP
-            initialDelaySeconds: 60
-            periodSeconds: 10
+            initialDelaySeconds: 10
+            periodSeconds: 5
             successThreshold: 1
-            timeoutSeconds: 5
+            timeoutSeconds: 1
           name: triton-workbench
           livenessProbe:
-            failureThreshold: 5
+            failureThreshold: 3
             httpGet:
               path: /notebook/triton-demo/triton-workbench/api
               port: notebook-port
               scheme: HTTP
-            initialDelaySeconds: 120
-            periodSeconds: 15
+            initialDelaySeconds: 10
+            periodSeconds: 5
             successThreshold: 1
-            timeoutSeconds: 5
+            timeoutSeconds: 1
           env:
             - name: NOTEBOOK_ARGS
               value: |-
@@ -62,8 +60,7 @@ spec:
                 --ServerApp.password=''
                 --ServerApp.base_url=/notebook/triton-demo/triton-workbench
                 --ServerApp.quit_button=False
-            - name: PIP_CERT
-              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+                --ServerApp.tornado_settings={"user":"mouachan","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.cluster-v2mx6.v2mx6.sandbox1062.opentlc.com","hub_prefix":"/projects/triton-demo"}
             - name: REQUESTS_CA_BUNDLE
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: SSL_CERT_FILE
@@ -72,6 +69,8 @@ spec:
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: GIT_SSL_CAINFO
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: PIP_CERT
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
             # Configuration Elyra pour les pipelines
             - name: ELYRA_ENABLE_SCRIPT_EXECUTION
               value: "True"
@@ -79,6 +78,11 @@ spec:
               value: "elyra.metadata.file.FileMetadataStore"
             - name: ELYRA_RUNTIME_ENV
               value: "kubeflow_pipelines"
+            # Configuration TLS pour Elyra (accepter les certificats auto-signés d'OpenShift)
+            - name: ELYRA_PIPELINE_RUNTIME_VERIFY_SSL
+              value: "false"
+            - name: KFP_VERIFY_SSL
+              value: "false"
             # Configuration Git pour charger le projet
             - name: GIT_REPO
               value: "https://github.com/mouachan/openshift-ai-setup.git"
@@ -101,12 +105,12 @@ spec:
               name: triton-workbench-storage
             - mountPath: /dev/shm
               name: shm
+            - mountPath: /opt/app-root/runtimes
+              name: elyra-dsp-details
             - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
               name: trusted-ca
               readOnly: true
               subPath: ca-bundle.crt
-            - mountPath: /opt/app-root/pipeline-runtimes/
-              name: runtime-images
             # Montage de la data connection S3
             - mountPath: /opt/app-root/src/data
               name: s3-connection
@@ -115,7 +119,7 @@ spec:
             - mountPath: /opt/app-root/src/.pip-cache
               name: pip-cache
               readOnly: false
-          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/triton-demo-notebook:latest'
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1'
           workingDir: /opt/app-root/src
           command:
           - /bin/bash
@@ -123,8 +127,19 @@ spec:
           args:
           - |
             # Script de démarrage simple
-            echo "🚀 Démarrage Triton Demo Notebook"
-            echo "📦 Tous les packages sont pré-installés dans l'image"
+            echo "🚀 Démarrage Triton Demo Notebook (Standard RHOAI)"
+            echo "📦 Utilisation de l'image standard qui fonctionne"
+            
+            # Configuration des certificats CA pour Python
+            echo "🔐 Configuration des certificats CA..."
+            export REQUESTS_CA_BUNDLE=/etc/pki/tls/custom-certs/ca-bundle.crt
+            export SSL_CERT_FILE=/etc/pki/tls/custom-certs/ca-bundle.crt
+            export PIPELINES_SSL_SA_CERTS=/etc/pki/tls/custom-certs/ca-bundle.crt
+            
+            # Désactiver la vérification SSL pour les connexions internes
+            echo "⚠️ Désactivation de la vérification SSL pour les connexions internes..."
+            export PYTHONHTTPSVERIFY=0
+            export REQUESTS_VERIFY=false
             
             # Clonage du repository si configuré
             if [ -n "${GIT_REPO}" ] && [ -n "${GIT_PATH}" ]; then
@@ -216,17 +231,14 @@ spec:
         - emptyDir:
             medium: Memory
           name: shm
-        - configMap:
-            items:
-              - key: ca-bundle.crt
-                path: ca-bundle.crt
-            name: workbench-trusted-ca-bundle
+        - name: elyra-dsp-details
+          configMap:
+            name: elyra-dsp-details
             optional: true
-          name: trusted-ca
-        - configMap:
-            name: pipeline-runtime-images
+        - name: trusted-ca
+          configMap:
+            name: trusted-ca
             optional: true
-          name: runtime-images
         - name: oauth-config
           secret:
             defaultMode: 420

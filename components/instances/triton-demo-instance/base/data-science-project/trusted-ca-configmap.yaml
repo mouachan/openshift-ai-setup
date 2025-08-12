@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trusted-ca
+  namespace: triton-demo
+data:
+  ca-bundle.crt: |
+    # Certificats CA de confiance pour OpenShift
+    # Ce fichier sera monté dans le workbench pour les communications TLS
+    # Les certificats sont automatiquement gérés par OpenShift
